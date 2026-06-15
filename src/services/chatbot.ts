@@ -19,7 +19,16 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
     // Check if we have already sent an out-of-hours message in this conversation recently in memory
     // or if it's already in the database
     const msgs = await dbStore.getMessagesForConversation(conv.id);
-    const hasSentOutOfHours = msgs.some(m => 
+    
+    // Find the index of the most recent "Atendimento encerrado" message
+    const lastClosureIndex = [...msgs].reverse().findIndex(m => 
+      m.sender_type === 'system' && m.message.includes("🏁 Atendimento encerrado")
+    );
+    
+    // Important: we only look for the out-of-hours message IN THE CURRENT SESSION (after the last closure)
+    const currentSessionMsgs = lastClosureIndex === -1 ? msgs : msgs.slice(msgs.length - lastClosureIndex);
+
+    const hasSentOutOfHours = currentSessionMsgs.some(m => 
         m.sender_type === 'system' && 
         (m.message === settings.out_of_hours_message ||
          m.message.includes("horário de atendimento") || 

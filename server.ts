@@ -936,6 +936,13 @@ app.post('/api/messages', async (req, res) => {
   const conv = await dbStore.getConversationById(conversation_id);
   if (!conv) return res.status(404).json({ error: 'Conversa não localizada' });
 
+  // Reset session if it was closed
+  if (conv.status === 'closed' && sender_type === 'customer') {
+    conv.status = 'chatbot';
+    conv.sector_id = null;
+    await dbStore.saveConversation(conv);
+  }
+
   const newMsg: Message = {
     id: "msg_" + Math.random().toString(36).substring(2, 9),
     conversation_id,
