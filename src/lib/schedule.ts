@@ -21,20 +21,25 @@ export function isWithinBusinessHours(schedules: { start: string; end: string; d
     
     const hour = parseInt(getValue('hour'), 10);
     const minute = parseInt(getValue('minute'), 10);
-    const brWeekday = getValue('weekday').toLowerCase().replace('.', ''); // seg, ter, etc.
     
-    // Normalize weekday (pt-BR format from Intl can vary slightly)
+    // Use english short weekday format to maps deterministically across any platform ICU implementation
+    const enFmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Sao_Paulo',
+      weekday: 'short'
+    });
+    const enWeekday = enFmt.format(now); // 'Sun', 'Mon', 'Tue', ..., 'Sat'
+    
     const weekdayMap: Record<string, string> = {
-      'seg': 'seg', 'segunda': 'seg', 'segunda-feira': 'seg',
-      'ter': 'ter', 'terça': 'ter', 'terça-feira': 'ter',
-      'qua': 'qua', 'quarta': 'qua', 'quarta-feira': 'qua',
-      'qui': 'qui', 'quinta': 'qui', 'quinta-feira': 'qui',
-      'sex': 'sex', 'sexta': 'sex', 'sexta-feira': 'sex',
-      'sáb': 'sab', 'sab': 'sab', 'sábado': 'sab',
-      'dom': 'dom', 'domingo': 'dom'
+      'Mon': 'seg',
+      'Tue': 'ter',
+      'Wed': 'qua',
+      'Thu': 'qui',
+      'Fri': 'sex',
+      'Sat': 'sab',
+      'Sun': 'dom'
     };
     
-    const cleanWeekday = weekdayMap[brWeekday] || brWeekday;
+    const cleanWeekday = weekdayMap[enWeekday] || 'seg';
 
     const activeDays = schedules.days || ['seg', 'ter', 'qua', 'qui', 'sex'];
     if (!activeDays.includes(cleanWeekday)) {

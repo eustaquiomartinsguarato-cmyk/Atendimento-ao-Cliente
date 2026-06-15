@@ -8,9 +8,12 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
   
   const cleanText = text.trim().toLowerCase();
 
-  // Check if we are outside of business hours (do NOT bypass for simulation so users can test out-of-hours flows in simulation)
-  const isBusinessHours = isWithinBusinessHours(settings.schedules);
-  console.log(`[Chatbot] Business hours check for ${conv.id}: ${isBusinessHours}`);
+  // Check if we are outside of business hours (permit simulated conversations to bypass by default so they can be tested anytime)
+  const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
+  const forceOutOfHoursInSim = isSimulation && conv.character && (conv.character.toLowerCase().includes("fora de horário") || conv.character.toLowerCase().includes("fora do horário"));
+  
+  const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) ? true : isWithinBusinessHours(settings.schedules);
+  console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}): ${isBusinessHours}`);
 
   if (!isBusinessHours) {
     // Check if we have already sent an out-of-hours message in this conversation
