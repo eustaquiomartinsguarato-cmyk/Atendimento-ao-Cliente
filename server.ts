@@ -963,22 +963,20 @@ app.post('/api/messages', async (req, res) => {
 
   // If chatbot handles this message because no agent has assumed it yet
   if (sender_type === 'customer' && conv.status === 'chatbot') {
-    setTimeout(async () => {
-      try {
-        const botReply = await handleIncomingMessageForChatbot(conv, message);
-        if (botReply) {
-          await dbStore.saveMessage(botReply);
-          broadcastUpdate('message_created', botReply);
-          
-          const freshConv = await dbStore.getConversationById(conversation_id);
-          if (freshConv) {
-            broadcastUpdate('conversation_updated', freshConv);
-          }
+    try {
+      const botReply = await handleIncomingMessageForChatbot(conv, message);
+      if (botReply) {
+        await dbStore.saveMessage(botReply);
+        broadcastUpdate('message_created', botReply);
+        
+        const freshConv = await dbStore.getConversationById(conversation_id);
+        if (freshConv) {
+          broadcastUpdate('conversation_updated', freshConv);
         }
-      } catch (err) {
-        console.error("Error in chatbot response setTimeout:", err);
       }
-    }, 1200);
+    } catch (err) {
+      console.error("Error in chatbot response processing:", err);
+    }
   }
 
   // Trigger Gemini client simulator if active agent replies to a simulated client
@@ -1169,7 +1167,7 @@ async function checkInactiveConversations() {
   const now = Date.now();
   const INACTIVITY_LIMIT_MS = 25 * 60 * 1000; // 25 minutes
 
-  const activeWaitingConvs = conversations.filter(c => c.status === 'active' || c.status === 'waiting');
+  const activeWaitingConvs = conversations.filter(c => c.status === 'active' || c.status === 'waiting' || c.status === 'chatbot');
 
   for (const conv of activeWaitingConvs) {
     const messages = await dbStore.getMessagesForConversation(conv.id);

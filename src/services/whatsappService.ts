@@ -774,18 +774,21 @@ export class WhatsappService {
         try {
           const botReply = await handleIncomingMessageForChatbot(conv, finalMessageText);
           if (botReply) {
+            // SALVAR IMEDIATAMENTE no banco para evitar condições de corrida em mensagens rápidas subsequentes
+            await dbStore.saveMessage(botReply);
+            this.notify('message_created', botReply);
+
             if (this.socket) {
               try { await this.socket.sendPresenceUpdate('composing', phone); } catch (e) {}
             }
 
+            // Aguarda o tempo de "digitação" antes de enviar para o WhatsApp real
             await new Promise(resolve => setTimeout(resolve, 3000));
 
             if (this.socket) {
               try { await this.socket.sendPresenceUpdate('paused', phone); } catch (e) {}
             }
 
-            await dbStore.saveMessage(botReply);
-            this.notify('message_created', botReply);
             await this.sendWhatsAppMessage(phone, botReply.message);
             
             const freshConv = await dbStore.getConversationById(conv.id);

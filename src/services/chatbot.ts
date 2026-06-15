@@ -16,11 +16,13 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
   console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}): ${isBusinessHours}`);
 
   if (!isBusinessHours) {
-    // Check if we have already sent an out-of-hours message in this conversation
+    // Check if we have already sent an out-of-hours message in this conversation recently in memory
+    // or if it's already in the database
     const msgs = await dbStore.getMessagesForConversation(conv.id);
     const hasSentOutOfHours = msgs.some(m => 
         m.sender_type === 'system' && 
-        (m.message.includes("horário de atendimento") || 
+        (m.message === settings.out_of_hours_message ||
+         m.message.includes("horário de atendimento") || 
          m.message.includes("horário") || 
          m.message.includes("expediente") || 
          m.message.includes("no momento estamos fora"))
