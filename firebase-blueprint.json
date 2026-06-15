@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users and attendants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "access_total", "atendimento"] },
+        "sector_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["online", "offline"] },
+        "photo": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "username", "email", "role"]
+    },
+    "Sector": {
+      "title": "Sector",
+      "description": "Business sectors for routing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["ativo", "inativo"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name"]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Chat conversations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customer_name": { "type": "string" },
+        "customer_phone": { "type": "string" },
+        "sector_id": { "type": "string" },
+        "attendant_id": { "type": "string" },
+        "status": { "type": "string", "enum": ["chatbot", "waiting", "active", "closed"] },
+        "started_at": { "type": "string", "format": "date-time" },
+        "last_message": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "customer_phone", "status"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Individual chat messages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conversation_id": { "type": "string" },
+        "sender_type": { "type": "string", "enum": ["customer", "agent", "system"] },
+        "message": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "conversation_id", "sender_type", "message"]
+    },
+    "QueueItem": {
+      "title": "QueueItem",
+      "description": "Waiting queue for attendants",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "conversation_id": { "type": "string" },
+        "sector_id": { "type": "string" },
+        "position": { "type": "number" },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "conversation_id", "position"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application settings",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "data": { "type": "object" }
+      },
+      "required": ["id", "data"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "System activity logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "user_name": { "type": "string" },
+        "user_email": { "type": "string" },
+        "action": { "type": "string" },
+        "target": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "user_name", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of system users"
+    },
+    "/sectors/{sectorId}": {
+      "schema": "Sector",
+      "description": "Collection of business sectors"
+    },
+    "/conversations/{convId}": {
+      "schema": "Conversation",
+      "description": "Main conversation records"
+    },
+    "/messages/{msgId}": {
+      "schema": "Message",
+      "description": "Flat collection of all messages"
+    },
+    "/queue/{queueId}": {
+      "schema": "QueueItem",
+      "description": "Current waiting queue"
+    },
+    "/settings/{settingsId}": {
+      "schema": "Settings",
+      "description": "Global settings document"
+    },
+    "/audit_logs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System audit logs"
+    }
+  }
+}

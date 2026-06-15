@@ -1,0 +1,8 @@
+{
+  "name": "LS GUARATO Chatbot Multiatendimento",
+  "description": "Plataforma SaaS de chatbot e atendimento multissetorial com filas, atendentes e inteligência artificial para a LS GUARATO.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

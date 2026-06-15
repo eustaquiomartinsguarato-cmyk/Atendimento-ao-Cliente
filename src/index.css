@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-dark: var(--brand-primary-dark);
+  --color-brand-agent-text: var(--brand-agent-text);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-accent: var(--brand-accent);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-title: var(--brand-title);
+  --color-brand-text: var(--brand-text);
+  --color-brand-sidebar: var(--brand-sidebar);
+  --color-brand-sidebar-text: var(--brand-sidebar-text);
+}
+
+:root {
+  /* ==========================================================================
+     PALETA DE CORES LS GUARATO
+     Edite os valores hexadecimais abaixo para alterar as cores do sistema.
+     ========================================================================== */
+
+  /* OPÇÃO 1: Ocean Blue (Atual)
+     --brand-primary: #3b82f6; --brand-primary-dark: #2563eb; --brand-title: #0f172a;
+  */
+
+  /* OPÇÃO 2: Modern Emerald
+     --brand-primary: #10b981; --brand-primary-dark: #059669; --brand-title: #064e3b;
+  */
+
+  /* OPÇÃO 3: Deep Purple (Premium)
+     --brand-primary: #6366f1; --brand-primary-dark: #4f46e5; --brand-title: #1e1b4b;
+  */
+
+  --brand-primary: #f1f5f9;      /* Cinza claro para balões do atendente e botões */
+  --brand-primary-dark: #e2e8f0; /* Cinza um pouco mais escuro */
+  --brand-agent-text: #1e293b;   /* Texto escuro para balão claro */
+  --brand-secondary: #64748b;    
+  --brand-accent: #10b981;       
+  --brand-surface: #f8fafc;      /* Fundo da aplicação */
+  --brand-title: #0f172a;        /* Cor de Títulos gerais */
+  --brand-text: #334155;         /* Cor do texto principal */
+  --brand-sidebar: #1e40af;      /* Azul para o menu */
+  --brand-sidebar-text: #ffffff; /* Branco para o texto do menu */
+}
+
+.dark {
+  --brand-primary: #1e293b;
+  --brand-primary-dark: #0f172a;
+  --brand-agent-text: #f1f5f9;
+  --brand-surface: #0f172a;
+  --brand-title: #f8fafc;
+  --brand-text: #cbd5e1;
+  --brand-sidebar: #1e3a8a;
+  --brand-sidebar-text: #ffffff;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.chat-bubble-agent {
+  background-color: var(--brand-primary);
+  color: var(--brand-agent-text);
+}
+
+.chat-bubble-customer {
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.dark .chat-bubble-customer {
+  background-color: #1e293b;
+  color: #f8fafc;
+}
+
+/* Custom classes for spacing */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
