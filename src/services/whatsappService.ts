@@ -21,7 +21,9 @@ export class WhatsappService {
   private number = '';
   private qrCodeUrl: string | null = null;
   private listeners: ((event: string, data: any) => void)[] = [];
-  private authPath = path.resolve('baileys_auth');
+  private authPath = path.resolve(
+    process.env.NODE_ENV === 'production' ? 'baileys_auth' : 'baileys_auth_dev'
+  );
 
   private isInitializing = false;
   private reconnectTimeout: any = null;
@@ -89,7 +91,8 @@ export class WhatsappService {
       let hasCreds = false;
       try {
         const settings = await dbStore.getSettings();
-        if (settings && settings.whatsapp_session_creds) {
+        const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+        if (settings && settings[credsField]) {
           hasCreds = true;
         }
       } catch (dbErr) {
@@ -149,11 +152,13 @@ export class WhatsappService {
         // If directory doesn't exist, check database to restore saved credentials
         try {
           const settings = await dbStore.getSettings();
-          if (settings && settings.whatsapp_session_creds) {
-            console.log('[WhatsApp] Restored session credentials found in database. Setting up local files.');
+          const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+          const savedCreds = settings ? settings[credsField] : undefined;
+          if (savedCreds) {
+            console.log(`[WhatsApp] Restored session credentials found in database (${credsField}). Setting up local files.`);
             fs.mkdirSync(this.authPath, { recursive: true });
             const credsPath = path.join(this.authPath, 'creds.json');
-            fs.writeFileSync(credsPath, settings.whatsapp_session_creds, 'utf-8');
+            fs.writeFileSync(credsPath, savedCreds, 'utf-8');
             console.log('[WhatsApp] session credentials restored successfully!');
           }
         } catch (dbErr: any) {
@@ -213,9 +218,10 @@ export class WhatsappService {
             if (fs.existsSync(credsPath)) {
               const raw = fs.readFileSync(credsPath, 'utf-8');
               const settings = await dbStore.getSettings();
-              if (settings.whatsapp_session_creds !== raw) {
-                console.log('[WhatsApp] Session credentials modified. Synced backup to database...');
-                settings.whatsapp_session_creds = raw;
+              const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+              if (settings[credsField] !== raw) {
+                console.log(`[WhatsApp] Session credentials modified. Synced backup to database field ${credsField}...`);
+                settings[credsField] = raw;
                 await dbStore.updateSettings(settings);
               }
             }
@@ -326,10 +332,11 @@ export class WhatsappService {
                 // Clear session credentials from database
                 try {
                   const settings = await dbStore.getSettings();
-                  if (settings && settings.whatsapp_session_creds) {
-                    delete settings.whatsapp_session_creds;
+                  const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+                  if (settings && settings[credsField]) {
+                    delete settings[credsField];
                     await dbStore.updateSettings(settings);
-                    console.log('[WhatsApp] Session logged out. Successfully cleared cloud credentials backup.');
+                    console.log(`[WhatsApp] Session logged out. Successfully cleared cloud credentials backup (${credsField}).`);
                   }
                 } catch (clearDbErr: any) {
                   console.error('[WhatsApp] Failed to clear cloud backup on logout:', clearDbErr?.message || clearDbErr);
@@ -434,14 +441,27 @@ export class WhatsappService {
   async requestSync(email: string, name: string) {
     if (this.status === 'CONNECTED') return this.getStatus();
     
-    console.log(`[WhatsApp] Sync requested by ${name} (${email}). Clearing previous files first.`);
+    console.log(`[WhatsApp] Sync requested by ${name} (${email}). Clearing previous files and cloud backup credentials.`);
 
     // 1. Force release any sockets/locks and delete directories cleanly first!
     await this.clearAuthPath();
 
+    // 2. Clear credentials backup from database to prevent restoration of stale session and guarantee a fresh QR!
+    try {
+      const settings = await dbStore.getSettings();
+      const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+      if (settings && settings[credsField]) {
+         delete settings[credsField];
+         await dbStore.updateSettings(settings);
+         console.log(`[WhatsApp] Removed cloud session credentials backup (${credsField}) on fresh sync request to guarantee a clean new QR.`);
+      }
+    } catch (clearDbErr: any) {
+      console.error('[WhatsApp] Failed to clear cloud backup on sync request:', clearDbErr?.message || clearDbErr);
+    }
+
     this.status = 'DISCONNECTED';
 
-    // 2. Begin a brand new clean initialization
+    // 3. Begin a brand new clean initialization
     await this.init(true);
 
     try {
@@ -472,10 +492,11 @@ export class WhatsappService {
     // 2. Clear session credentials from database backup
     try {
       const settings = await dbStore.getSettings();
-      if (settings && settings.whatsapp_session_creds) {
-         delete settings.whatsapp_session_creds;
+      const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
+      if (settings && settings[credsField]) {
+         delete settings[credsField];
          await dbStore.updateSettings(settings);
-         console.log('[WhatsApp] Removed cloud session credentials backup.');
+         console.log(`[WhatsApp] Removed cloud session credentials backup (${credsField}).`);
       }
     } catch (clearDbErr: any) {
       console.error('[WhatsApp] Failed to clear cloud credentials backup:', clearDbErr?.message || clearDbErr);

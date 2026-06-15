@@ -95,6 +95,7 @@ export interface Settings {
   }[];
   quick_messages?: QuickMessage[];
   whatsapp_session_creds?: string;
+  whatsapp_session_creds_dev?: string;
 }
 
 export interface AuditLog {
