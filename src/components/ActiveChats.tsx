@@ -1151,62 +1151,6 @@ export default function ActiveChats({
                       </button>
                     )}
 
-                    {/* --------- SETOR FINANCEIRO & COBRANÇA --------- */}
-                    <div className="flex flex-wrap items-center gap-2 p-1.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-100/50 dark:border-emerald-900/30">
-                      <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-500 uppercase ml-1 mr-1">Financeiro:</span>
-                      
-                      {/* Quick Response Action: COBRANÇA */}
-                      <button
-                        onClick={() => sendQuickMessage(`💰 *COBRANÇA & FINANCEIRO - LS GUARATO*\n\nOlá! Para agilizarmos seu atendimento no financeiro, por favor informe o número da sua nota fiscal ou o CPF/CNPJ do titular da compra.\n\nCaso queira solicitar a segunda via do boleto ou demonstrativo de débito, basta nos enviar os dados acima!`)}
-                        className="bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/50 transition cursor-pointer shadow-xs"
-                        title="Enviar saudação do setor de cobrança"
-                      >
-                        <Receipt className="w-3 h-3 mr-1 inline" />
-                        <span>SAUDAÇÃO</span>
-                      </button>
-
-                      {/* Quick Response Action: BOLETO */}
-                      <button
-                        onClick={() => sendQuickMessage(`🧾 *ENVIO DE BOLETO BANCÁRIO*\n\nEstamos processando sua solicitação de boleto. Em breve você receberá o arquivo em PDF por este canal.\n\n⚠️ *Atenção:* Sempre confira os dados do beneficiário (LS GUARATO LTDA) antes de efetuar o pagamento.`)}
-                        className="bg-white dark:bg-slate-900 hover:bg-blue-50 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-400 font-bold text-[10px] px-2.5 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/50 transition cursor-pointer shadow-xs"
-                        title="Aviso de envio de boleto"
-                      >
-                        <FileText className="w-3 h-3 mr-1 inline opacity-70" />
-                        <span>AVISO BOLETO</span>
-                      </button>
-
-                      {/* Quick Response Action: NOTA FISCAL */}
-                      <button
-                        onClick={() => sendQuickMessage(`📄 *NOTA FISCAL (DANFE / XML)*\n\nSua nota fiscal já foi emitida! Segue em anexo a versão digital (DANFE) para conferência.\n\nCaso precise da nota em seu e-mail, por favor nos informe o endereço abaixo.`)}
-                        className="bg-white dark:bg-slate-900 hover:bg-emerald-50 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-bold text-[10px] px-2.5 py-1.5 rounded-lg border border-emerald-100 dark:border-emerald-900/50 transition cursor-pointer shadow-xs"
-                        title="Aviso de envio de nota fiscal"
-                      >
-                        <FileText className="w-3 h-3 mr-1 inline opacity-70" />
-                        <span>AVISO NF</span>
-                      </button>
-
-                      {/* Quick Response Action: COMPROVANTE */}
-                      <button
-                        onClick={() => sendQuickMessage(`🕒 *SOLICITAÇÃO DE COMPROVANTE*\n\nOlá! Identificamos que seu pagamento ainda consta como pendente em nosso sistema. Poderia nos enviar o comprovante de pagamento para que possamos liberar sua entrega ou pedido?`)}
-                        className="bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-400 font-bold text-[10px] px-2.5 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900/50 transition cursor-pointer shadow-xs"
-                        title="Solicitar comprovante de pagamento"
-                      >
-                        <AlertCircle className="w-3 h-3 mr-1 inline" />
-                        <span>PEDIR COMPROVANTE</span>
-                      </button>
-
-                      {/* ANEXAR button moved here for context */}
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={sending}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg transition cursor-pointer shadow-sm disabled:opacity-50"
-                        title="Anexar Boleto ou Nota Fiscal em PDF/Imagem"
-                      >
-                        <Paperclip className="w-3 h-3 mr-1 inline" />
-                        <span>ENVIAR ARQUIVO</span>
-                      </button>
-                    </div>
 
                     {/* --------- OUTROS ATALHOS --------- */}
                     <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -1428,6 +1372,15 @@ export default function ActiveChats({
                       <Paperclip className="w-3.5 h-3.5 text-slate-500" />
                       <span>ANEXAR ARQUIVO</span>
                     </button>
+                  </div>
+
+                  {/* NOVOS BOTÕES DE AÇÃO ABAIXO */}
+                  <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onClick={() => sendQuickMessage("Olá! Tudo bem? Como posso ajudar você hoje na LS Guarato?")} className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 rounded-lg text-[10px] font-bold transition hover:bg-blue-100 cursor-pointer">SAUDAÇÃO</button>
+                    <button type="button" onClick={() => sendQuickMessage("Olá! Segue o seu boleto para pagamento.")} className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 rounded-lg text-[10px] font-bold transition hover:bg-amber-100 cursor-pointer">AVISO DE BOLETO</button>
+                    <button type="button" onClick={() => sendQuickMessage("Olá! Segue sua Nota Fiscal.")} className="px-2.5 py-1.5 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50 rounded-lg text-[10px] font-bold transition hover:bg-purple-100 cursor-pointer">AVISO NF</button>
+                    <button type="button" onClick={() => sendQuickMessage("Por favor, poderia nos enviar o comprovante de pagamento?")} className="px-2.5 py-1.5 bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-900/50 rounded-lg text-[10px] font-bold transition hover:bg-orange-100 cursor-pointer">PEDIR COMPROVANTE</button>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold transition hover:bg-slate-100 cursor-pointer">ENVIAR ARQUIVO</button>
                   </div>
 
                   <form onSubmit={handleSendSubmit} className="flex gap-2.5 items-center">
