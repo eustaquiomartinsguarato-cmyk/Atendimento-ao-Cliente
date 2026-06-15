@@ -47,6 +47,9 @@ export interface Message {
   sender_type: 'customer' | 'agent' | 'system';
   message: string;
   created_at: string;
+  file_url?: string;
+  file_name?: string;
+  mimetype?: string;
 }
 
 export interface QueueItem {

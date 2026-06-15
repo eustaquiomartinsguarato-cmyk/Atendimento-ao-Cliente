@@ -1306,6 +1306,20 @@ export default function ActiveChats({
                       }`}>
                         <p className="whitespace-pre-wrap">{msg.message}</p>
                         
+                        {msg.file_url && (
+                          <div className="mt-3">
+                            <a 
+                              href={msg.file_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 bg-slate-200 dark:bg-slate-700 p-2 rounded-lg text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition"
+                            >
+                              <Paperclip className="w-4 h-4" />
+                              <span>{msg.file_name || 'Abrir Arquivo'}</span>
+                            </a>
+                          </div>
+                        )}
+                        
                         {isPixInvoice && (
                           <div className="mt-3 pt-2.5 border-t border-slate-200/50 dark:border-slate-750">
                             <button

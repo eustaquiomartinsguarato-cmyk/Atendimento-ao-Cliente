@@ -18,6 +18,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Create and serve uploads directory statically
+const uploadsFolder = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsFolder)) {
+  fs.mkdirSync(uploadsFolder, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsFolder));
+
 // Request Logger
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -1037,12 +1044,25 @@ app.post('/api/messages/media', upload.single('file'), async (req, res) => {
     const fileName = file.originalname;
     const description = type === 'image' ? '📷 Foto' : type === 'video' ? '🎥 Vídeo' : type === 'audio' ? '🎙️ Áudio' : `📄 Arquivo: ${fileName}`;
     
+    // Save file locally to be accessible via /uploads static route
+    const fileId = "file_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    const safeName = `${fileId}_${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const fileUrl = `/uploads/${safeName}`;
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    fs.writeFileSync(path.join(uploadDir, safeName), file.buffer);
+
     const newMsg: Message = {
       id: "msg_media_" + Date.now() + "_" + Math.floor(Math.random() * 100),
       conversation_id,
       sender_type,
       message: caption ? `${description}\n\n${caption}` : description,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      file_url: fileUrl,
+      file_name: file.originalname,
+      mimetype: file.mimetype
     };
 
     await dbStore.saveMessage(newMsg);

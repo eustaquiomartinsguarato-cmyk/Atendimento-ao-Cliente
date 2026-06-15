@@ -2,7 +2,8 @@ import makeWASocketPkg, {
   DisconnectReason, 
   useMultiFileAuthState, 
   fetchLatestBaileysVersion,
-  WASocket
+  WASocket,
+  downloadContentFromMessage
 } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import pino from 'pino';
@@ -618,6 +619,54 @@ export class WhatsappService {
 
     const finalMessageText = text || (upsert.message?.imageMessage ? "📷 Foto" : upsert.message?.videoMessage ? "🎥 Vídeo" : upsert.message?.audioMessage ? "🎙️ Áudio" : upsert.message?.documentMessage ? "📄 Documento" : upsert.message?.stickerMessage ? "🖼️ Figurinha" : "📎 Mídia");
 
+    let file_url: string | undefined = undefined;
+    let file_name: string | undefined = undefined;
+    let file_mimetype: string | undefined = undefined;
+
+    if (isMedia) {
+      try {
+        const msgObj = upsert.message?.imageMessage || 
+                       upsert.message?.videoMessage || 
+                       upsert.message?.audioMessage || 
+                       upsert.message?.documentMessage || 
+                       upsert.message?.stickerMessage;
+        
+        if (msgObj) {
+          const mType = upsert.message?.imageMessage ? 'image' : 
+                        upsert.message?.videoMessage ? 'video' : 
+                        upsert.message?.audioMessage ? 'audio' : 
+                        upsert.message?.documentMessage ? 'document' : 'sticker';
+
+          file_mimetype = msgObj.mimetype;
+          file_name = (msgObj as any).fileName || (msgObj as any).filename || '';
+          
+          if (!file_name) {
+            const ext = file_mimetype ? file_mimetype.split('/')[1]?.split(';')[0] || '' : '';
+            file_name = `whatsapp_media_${Date.now()}.${ext || 'bin'}`;
+          }
+
+          console.log(`[WhatsApp] Baixando arquivo do WhatsApp do tipo: ${mType}, mimetype: ${file_mimetype}`);
+          const stream = await downloadContentFromMessage(msgObj, mType as any);
+          let buffer = Buffer.from([]);
+          for await (const chunk of stream) {
+            buffer = Buffer.concat([buffer, chunk]);
+          }
+
+          const fileId = "file_wa_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+          const safeName = `${fileId}_${file_name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const uploadDir = path.resolve('uploads');
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          fs.writeFileSync(path.join(uploadDir, safeName), buffer);
+          file_url = `/uploads/${safeName}`;
+          console.log(`[WhatsApp] Arquivo baixado com sucesso e salvo em ${file_url}`);
+        }
+      } catch (err) {
+        console.error("[WhatsApp] Erro ao baixar arquivo da mensagem recebida:", err);
+      }
+    }
+
     console.log(`[WhatsApp] Processando mensagem. Remetente: ${senderType}, Telefone: ${cleanPhone}: "${finalMessageText.substring(0, 50)}..."`);
 
     try {
@@ -711,7 +760,10 @@ export class WhatsappService {
         conversation_id: conv.id,
         sender_type: senderType,
         message: finalMessageText,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        file_url,
+        file_name,
+        mimetype: file_mimetype
       };
 
       await dbStore.saveMessage(newMsg);

@@ -20,9 +20,10 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
     const msgs = await dbStore.getMessagesForConversation(conv.id);
     const hasSentOutOfHours = msgs.some(m => 
         m.sender_type === 'system' && 
-        (settings.out_of_hours_message 
-          ? m.message === settings.out_of_hours_message 
-          : (m.message.includes("horário de atendimento") || m.message.includes("horário")))
+        (m.message.includes("horário de atendimento") || 
+         m.message.includes("horário") || 
+         m.message.includes("expediente") || 
+         m.message.includes("no momento estamos fora"))
       );
     
     if (!hasSentOutOfHours) {

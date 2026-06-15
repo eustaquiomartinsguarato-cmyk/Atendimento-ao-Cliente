@@ -57,7 +57,10 @@
         "conversation_id": { "type": "string" },
         "sender_type": { "type": "string", "enum": ["customer", "agent", "system"] },
         "message": { "type": "string" },
-        "created_at": { "type": "string", "format": "date-time" }
+        "created_at": { "type": "string", "format": "date-time" },
+        "file_url": { "type": "string" },
+        "file_name": { "type": "string" },
+        "mimetype": { "type": "string" }
       },
       "required": ["id", "conversation_id", "sender_type", "message"]
     },
