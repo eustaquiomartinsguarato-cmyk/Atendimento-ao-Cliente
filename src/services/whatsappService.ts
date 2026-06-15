@@ -77,11 +77,41 @@ export class WhatsappService {
     }
   }
 
-  async init() {
+  async init(forceSync = false) {
     if (this.isInitializing) {
       console.log('[WhatsApp] Initialization already in progress, skipping...');
       return;
     }
+
+    // Se NÃO for forceSync, vamos verificar se temos credenciais para restaurar.
+    // Se não tivermos nenhuma credencial no banco E não houver arquivo creds.json localmente, não devemos inicializar!
+    if (!forceSync) {
+      let hasCreds = false;
+      try {
+        const settings = await dbStore.getSettings();
+        if (settings && settings.whatsapp_session_creds) {
+          hasCreds = true;
+        }
+      } catch (dbErr) {
+        console.error('[WhatsApp] Guard Check - Error reading settings:', dbErr);
+      }
+
+      const credsPath = path.join(this.authPath, 'creds.json');
+      if (fs.existsSync(credsPath)) {
+        hasCreds = true;
+      }
+
+      if (!hasCreds) {
+        console.log('[WhatsApp] No session credentials found. Skipping auto-initialization to remain DISCONNECTED.');
+        this.status = 'DISCONNECTED';
+        this.isConnected = false;
+        this.qrCodeUrl = null;
+        this.isInitializing = false;
+        this.notify('status_change', this.getStatus());
+        return;
+      }
+    }
+
     this.isInitializing = true;
 
     // Clear any pending reconnect timers
@@ -269,22 +299,25 @@ export class WhatsappService {
                
                this.attemptCount++;
                const delay = Math.min(2000 * Math.pow(1.5, this.attemptCount), 60000);
-               this.reconnectTimeout = setTimeout(() => this.init(), delay);
+               this.reconnectTimeout = setTimeout(() => this.init(false), delay);
                return;
             }
 
             if (isQrTimeout) {
-               console.log('[WhatsApp] QR refs attempts ended or timed out. Clearing auth directory and auto-scheduling fresh QR generation in 15 seconds...');
+               console.log('[WhatsApp] QR refs attempts ended or timed out. Clearing auth directory and stopping automatic QR generation.');
                await this.clearAuthPath();
+               this.status = 'DISCONNECTED';
+               this.isConnected = false;
+               this.qrCodeUrl = null;
                this.isInitializing = false;
-               this.reconnectTimeout = setTimeout(() => this.init(), 15000);
+               this.notify('status_change', this.getStatus());
                return;
             }
 
             if (shouldReconnect) {
               console.log('[WhatsApp] Reconnection scheduled in 4s');
               this.isInitializing = false;
-              this.reconnectTimeout = setTimeout(() => this.init(), 4000);
+              this.reconnectTimeout = setTimeout(() => this.init(false), 4000);
             } else {
               this.isInitializing = false;
               if (statusCode === DisconnectReason.loggedOut) {
@@ -409,7 +442,7 @@ export class WhatsappService {
     this.status = 'DISCONNECTED';
 
     // 2. Begin a brand new clean initialization
-    await this.init();
+    await this.init(true);
 
     try {
       await dbStore.addAuditLog({
@@ -461,8 +494,8 @@ export class WhatsappService {
 
     this.notify('status_change', this.getStatus());
     
-    // Give it a fresh restart with clean directories
-    this.reconnectTimeout = setTimeout(() => this.init(), 1000);
+    // Removido timer incondicional para impedir loop de auto-conexão imediata sem pareamento!
+    console.log('[WhatsApp] Disconnect completed. Staying in DISCONNECTED state.');
 
     return this.getStatus();
   }

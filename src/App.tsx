@@ -289,7 +289,7 @@ export default function App() {
         clearInterval(fastTimer);
       }
     };
-  }, [activeTab]);
+  }, [activeTab, whatsAppStatus.status, whatsAppStatus.number, whatsAppStatus.qrCodeUrl]);
 
   // Update dark class stylesheet on body
   useEffect(() => {
