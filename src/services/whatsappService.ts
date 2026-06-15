@@ -165,7 +165,7 @@ export class WhatsappService {
       const { state, saveCreds } = await useMultiFileAuthState(this.authPath);
       
       console.log('[WhatsApp] Fetching latest Baileys version with 5s timeout...');
-      let version: [number, number, number] = [2, 3000, 1035194821]; 
+      let version: [number, number, number] | undefined = undefined; 
       try {
         const versionPromise = fetchLatestBaileysVersion();
         const timeoutPromise = new Promise<never>((_, reject) => 
@@ -175,14 +175,14 @@ export class WhatsappService {
         version = latest.version;
         console.log(`[WhatsApp] Using Baileys v${version.join('.')}, isLatest: ${latest.isLatest}`);
       } catch (e: any) {
-        console.warn(`[WhatsApp] Failed to fetch latest Baileys version: ${e.message || e}. Using fallback version ${version.join('.')}.`);
+        console.warn(`[WhatsApp] Failed to fetch latest Baileys version: ${e.message || e}. Letting Baileys auto-select stable internal default version.`);
         try {
           await dbStore.addAuditLog({
             id: "wa_sys_info_" + Date.now(),
             user_name: "Status do Celular",
             user_email: "whatsapp-engine@guarato.com.br",
             action: "WHATSAPP_CONFIG_INFO",
-            target: `Consulta de versão via NPM falhou. Usando versão padrão v${version.join('.')}. Detalhes: ${e.message || e}`,
+            target: `Consulta de versão via NPM falhou. Usando versão interna do Baileys. Detalhes: ${e.message || e}`,
             timestamp: new Date().toISOString()
           });
         } catch (logErr) {}
@@ -190,7 +190,7 @@ export class WhatsappService {
 
       console.log('[WhatsApp] Creating socket...');
       const socketOptions: any = {
-        version,
+        ...(version ? { version } : {}),
         auth: state,
         printQRInTerminal: false,
         logger: pino({ level: 'silent' }) as any,
