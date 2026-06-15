@@ -8,9 +8,10 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
   
   const cleanText = text.trim().toLowerCase();
 
-  // Check if we are outside of business hours
-  const isBusinessHours = isWithinBusinessHours(settings.schedules);
-  console.log(`[Chatbot] Business hours check for ${conv.id}: ${isBusinessHours}`);
+  // Check if we are outside of business hours (bypass for simulated conversations to allow testing at any time)
+  const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
+  const isBusinessHours = isSimulation ? true : isWithinBusinessHours(settings.schedules);
+  console.log(`[Chatbot] Business hours check for ${conv.id} (Simulation: ${isSimulation}): ${isBusinessHours}`);
 
   if (!isBusinessHours) {
     // Check if we have already sent an out-of-hours message in this conversation

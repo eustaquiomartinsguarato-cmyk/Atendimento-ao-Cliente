@@ -41,8 +41,9 @@ export async function generateGeminiReply(
       Responda ao Atendente mantendo seu personagem/perfil:
     `;
 
-    const response = await client.models.generateContent({
-      model: 'gemini-2.5-flash',
+    // Race the API call with a 6-second timeout to prevent indefinite hangs
+    const generatePromise = client.models.generateContent({
+      model: 'gemini-3.5-flash',
       contents: prompt,
       config: {
         systemInstruction,
@@ -50,6 +51,12 @@ export async function generateGeminiReply(
         maxOutputTokens: 250
       }
     });
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Gemini API call timed out after 6 seconds')), 6000)
+    );
+
+    const response = await Promise.race([generatePromise, timeoutPromise]);
 
     return response.text?.trim() || "Entendido. Vou aguardar retorno.";
   } catch (err) {
