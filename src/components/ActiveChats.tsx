@@ -888,14 +888,14 @@ export default function ActiveChats({
                         setPreviewMessages(await res.json());
                       } catch(e){}
                     }}
-                    disabled={previewSending || (previewOutOfHoursMsgSent && previewConv?.status === 'chatbot')}
+                    disabled={previewSending}
                     className="px-2 py-1.5 bg-slate-50 hover:bg-emerald-50 dark:bg-slate-850/65 dark:hover:bg-emerald-950/20 text-slate-655 dark:text-slate-300 border border-slate-150 dark:border-slate-800 rounded text-[9px] font-bold uppercase tracking-wider text-center cursor-pointer transition leading-none truncate disabled:opacity-50"
                   >
                     🛍️ Catálogo
                   </button>
                   <button
                     onClick={() => openPixBilling(previewConvId)}
-                    disabled={previewSending || (previewOutOfHoursMsgSent && previewConv?.status === 'chatbot')}
+                    disabled={previewSending}
                     className="px-2 py-1.5 bg-slate-50 hover:bg-amber-50 dark:bg-slate-855/65 dark:hover:bg-amber-955/20 text-slate-655 dark:text-slate-300 border border-slate-150 dark:border-slate-800 rounded text-[9px] font-bold uppercase tracking-wider text-center cursor-pointer transition leading-none truncate disabled:opacity-50"
                   >
                     💸 Chave PIX
@@ -906,7 +906,7 @@ export default function ActiveChats({
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    if (!previewInput.trim() || previewSending || (previewOutOfHoursMsgSent && previewConv?.status === 'chatbot')) return;
+                    if (!previewInput.trim() || previewSending) return;
                     setPreviewSending(true);
                     try {
                       await onSendMessage(previewConvId, previewInput, 'agent');
@@ -925,17 +925,13 @@ export default function ActiveChats({
                     type="text"
                     value={previewInput}
                     onChange={e => setPreviewInput(e.target.value)}
-                    placeholder={previewOutOfHoursMsgSent && previewConv?.status === 'chatbot' ? "🚫 Fora de Horário (Cliente bloqueado)" : "Escreva resposta rápida..."}
-                    disabled={previewSending || (previewOutOfHoursMsgSent && previewConv?.status === 'chatbot')}
-                    className={`flex-1 border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none ${
-                      previewOutOfHoursMsgSent && previewConv?.status === 'chatbot'
-                        ? 'bg-red-50/50 border-red-250 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-300 placeholder-red-400'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 dark:text-white'
-                    }`}
+                    placeholder="Escreva resposta rápida..."
+                    disabled={previewSending}
+                    className="flex-1 border rounded-lg px-2.5 py-1.5 text-[11px] focus:outline-none bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 dark:text-white"
                   />
                   <button
                     type="submit"
-                    disabled={!previewInput.trim() || previewSending || (previewOutOfHoursMsgSent && previewConv?.status === 'chatbot')}
+                    disabled={!previewInput.trim() || previewSending}
                     className="bg-brand-primary text-brand-agent-text px-2.5 py-1 rounded-lg hover:bg-brand-primary-dark transition disabled:opacity-50 cursor-pointer shadow-xs font-bold text-xs"
                   >
                     Enviar
@@ -1376,7 +1372,7 @@ export default function ActiveChats({
                             key={qm.id}
                             type="button"
                             onClick={() => sendQuickMessage(qm.text)}
-                            disabled={sending || (outOfHoursMsgSent && activeConv.status === 'chatbot')}
+                            disabled={sending}
                             className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-brand-primary/10 text-slate-705 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-brand-primary/40 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
                             title={qm.title}
                           >
@@ -1392,7 +1388,7 @@ export default function ActiveChats({
                     <button
                       type="button"
                       onClick={() => openPixBilling(selectedConvId)}
-                      disabled={sending || (outOfHoursMsgSent && activeConv.status === 'chatbot')}
+                      disabled={sending}
                       className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-900/60 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
                       title="Enviar faturamento PIX (com valor)"
                     >
@@ -1411,7 +1407,7 @@ export default function ActiveChats({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={sending || (outOfHoursMsgSent && activeConv.status === 'chatbot')}
+                      disabled={sending}
                       className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
                       title="Anexar Boleto, NF ou Comprovante"
                     >
@@ -1425,17 +1421,13 @@ export default function ActiveChats({
                       type="text"
                       value={inputText}
                       onChange={e => setInputText(e.target.value)}
-                      placeholder={outOfHoursMsgSent && activeConv.status === 'chatbot' ? "🚫 Fora de Horário (Cliente bloqueado)" : "Digite sua resposta e pressione enviar..."}
-                      disabled={sending || (outOfHoursMsgSent && activeConv.status === 'chatbot')}
-                      className={`flex-1 border rounded-xl px-4 py-3 text-sm focus:outline-none ${
-                        outOfHoursMsgSent && activeConv.status === 'chatbot'
-                          ? 'bg-red-50/50 border-red-200 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-300 placeholder-red-400'
-                          : 'bg-slate-50 dark:bg-slate-900 border-slate-150 dark:border-slate-800 dark:text-slate-100'
-                      }`}
+                      placeholder="Digite sua resposta e pressione enviar..."
+                      disabled={sending}
+                      className="flex-1 border rounded-xl px-4 py-3 text-sm focus:outline-none bg-slate-50 dark:bg-slate-900 border-slate-150 dark:border-slate-800 dark:text-slate-100"
                     />
                     <button
                       type="submit"
-                      disabled={sending || (outOfHoursMsgSent && activeConv.status === 'chatbot') || !inputText.trim()}
+                      disabled={sending || !inputText.trim()}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition disabled:opacity-50 cursor-pointer shadow-sm"
                     >
                       <Send className="w-4 h-4" />
