@@ -1235,15 +1235,26 @@ export default function ActiveChats({
                         
                         {msg.file_url && (
                           <div className="mt-3">
-                            <a 
-                              href={msg.file_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 bg-slate-200 dark:bg-slate-700 p-2 rounded-lg text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition"
-                            >
-                              <Paperclip className="w-4 h-4" />
-                              <span>{msg.file_name || 'Abrir Arquivo'}</span>
-                            </a>
+                            {msg.mimetype?.startsWith('image/') ? (
+                              <img 
+                                src={msg.file_url} 
+                                alt="Imagem recebida" 
+                                className="max-w-full rounded-lg max-h-64 object-contain shadow-sm cursor-pointer"
+                                onClick={() => window.open(msg.file_url, '_blank')}
+                              />
+                             ) : !msg.mimetype?.startsWith('audio/') && !msg.mimetype?.startsWith('video/') ? (
+                              <a 
+                                href={msg.file_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 bg-slate-200 dark:bg-slate-700 p-2 rounded-lg text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-600 transition"
+                              >
+                                <Paperclip className="w-4 h-4" />
+                                <span>{msg.file_name || 'Abrir Arquivo'}</span>
+                              </a>
+                            ) : (
+                              <p className="text-[10px] text-red-500 bg-red-50 p-2 rounded-lg">Tipo de arquivo não suportado.</p>
+                            )}
                           </div>
                         )}
                         
