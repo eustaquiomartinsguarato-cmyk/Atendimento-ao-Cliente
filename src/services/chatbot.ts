@@ -34,8 +34,24 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
     const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
     const forceOutOfHoursInSim = isSimulation && conv.character && (conv.character.toLowerCase().includes("fora de horário") || conv.character.toLowerCase().includes("fora do horário"));
     
-    const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) ? true : isWithinBusinessHours(settings.schedules);
-    console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}): ${isBusinessHours}`);
+    // Saturday after 12:00 = All available
+    const now = new Date();
+    const fmt = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        hour: 'numeric',
+        minute: 'numeric',
+        weekday: 'short',
+        hour12: false
+    });
+    
+    const parts = fmt.formatToParts(now);
+    const weekday = parts.find(p => p.type === 'weekday')?.value || "";
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+    
+    const isSaturdayAfter12 = weekday === 'sáb' && hour >= 12;
+    
+    const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) || isSaturdayAfter12 ? true : isWithinBusinessHours(settings.schedules);
+    console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}, SatAfter12: ${isSaturdayAfter12}): ${isBusinessHours}`);
 
     if (!isBusinessHours) {
       // Re-fetch messages right before deciding, to be absolutely sure in case of race conditions

@@ -410,7 +410,8 @@ export default function ActiveChats({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newChatName || 'Novo Contato',
-          phone: newChatPhone.replace(/\D/g, '')
+          phone: newChatPhone.replace(/\D/g, ''),
+          attendant_id: activeAgent.id // Assign to current agent
         })
       });
 

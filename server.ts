@@ -572,7 +572,7 @@ app.get('/api/conversations', async (req, res) => {
 });
 
 app.post('/api/conversations', async (req, res) => {
-  const { name, phone, sectorId } = req.body;
+  const { name, phone, sectorId, attendant_id } = req.body;
   if (!phone) return res.status(400).json({ error: 'Telefone é obrigatório' });
 
   const existing = await dbStore.getConversations();
@@ -587,10 +587,10 @@ app.post('/api/conversations', async (req, res) => {
     customer_name: name || 'Novo Contato',
     customer_phone: phone,
     sector_id: sectorId || null,
-    attendant_id: null,
-    status: 'waiting',
+    attendant_id: attendant_id || null, // Allow assignment
+    status: attendant_id ? 'active' : 'waiting', // If assigned, active
     started_at: new Date().toISOString(),
-    last_message: 'Conversa iniciada pelo atendente',
+    last_message: 'Conversa iniciada',
     tags: [],
     created_at: new Date().toISOString()
   };
