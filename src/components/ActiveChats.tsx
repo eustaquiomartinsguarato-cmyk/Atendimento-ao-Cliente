@@ -404,6 +404,7 @@ export default function ActiveChats({
     if (!newChatPhone.trim() || newChatLoading) return;
     
     setNewChatLoading(true);
+    console.log("[NewChat] Iniciando chat para:", newChatPhone);
     try {
       const res = await fetch('/api/conversations', {
         method: 'POST',
@@ -421,12 +422,14 @@ export default function ActiveChats({
       }
 
       const conv = await res.json();
+      console.log("[NewChat] Chat criado:", conv);
       setSelectedConvId(conv.id);
       setViewMode('chat');
       setNewChatOpen(false);
       setNewChatPhone('');
       setNewChatName('');
     } catch (err: any) {
+      console.error("[NewChat] Erro:", err);
       alert(err.message);
     } finally {
       setNewChatLoading(false);
@@ -876,13 +879,13 @@ export default function ActiveChats({
                               <div className="mt-2">
                                 {msg.mimetype?.startsWith('image/') ? (
                                   <img 
-                                    src={msg.file_url} 
+                                    src={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} 
                                     alt="Imagem" 
                                     className="max-w-full rounded-lg max-h-32 object-contain cursor-pointer"
-                                    onClick={() => window.open(msg.file_url, '_blank')}
+                                    onClick={() => window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
                                   />
                                 ) : (
-                                  <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline break-all">
+                                  <a href={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline break-all">
                                     {msg.file_name || 'Abrir arquivo'}
                                   </a>
                                 )}
