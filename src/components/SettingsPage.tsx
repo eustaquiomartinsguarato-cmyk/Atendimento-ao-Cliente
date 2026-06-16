@@ -709,7 +709,7 @@ export default function SettingsPage({
                     <div className="space-y-1">
                       <label className="font-bold text-slate-450 dark:text-slate-400 block">Tecla Atalho / Palavra-Chave</label>
                       <input 
-                        type="text" required value={optKey} onChange={e => setOptKey(e.target.value)}
+                        type="text" value={optKey} onChange={e => setOptKey(e.target.value)}
                         placeholder="Ex: 4 ou loja ou ajuda"
                         className="w-full border border-slate-200 dark:border-slate-800 dark:bg-slate-950 px-3 py-2 rounded-xl text-xs focus:outline-none"
                       />
@@ -717,7 +717,7 @@ export default function SettingsPage({
                     <div className="space-y-1 md:col-span-3">
                       <label className="font-bold text-slate-450 dark:text-slate-400 block">Título do Item do Menu</label>
                       <input 
-                        type="text" required value={optTitle} onChange={e => setOptTitle(e.target.value)}
+                        type="text" value={optTitle} onChange={e => setOptTitle(e.target.value)}
                         placeholder="Ex: Visitar catálogo da Loja Virtual, Vagas abertas do RH..."
                         className="w-full border border-slate-200 dark:border-slate-800 dark:bg-slate-950 px-3 py-2 rounded-xl text-xs focus:outline-none"
                       />
@@ -739,7 +739,7 @@ export default function SettingsPage({
                       </div>
                     </div>
                     <textarea 
-                      rows={3} required value={optResponse} onChange={e => setOptResponse(e.target.value)}
+                      rows={3} value={optResponse} onChange={e => setOptResponse(e.target.value)}
                       placeholder="Ex: Aqui está o link da nossa loja virtual: https://guarato.com.br/loja. Use o cupom BEMVINDO para 5% de desconto! 🌟🛒"
                       className="w-full border border-slate-200 dark:border-slate-800 dark:bg-slate-950 px-3 py-2 rounded-xl text-xs focus:outline-none leading-relaxed font-sans"
                     />
@@ -894,7 +894,7 @@ export default function SettingsPage({
                     <div className="space-y-1">
                       <label className="font-bold text-slate-450 dark:text-slate-400 block uppercase tracking-wider">Título do Botão</label>
                       <input 
-                        type="text" required value={qmTitle} onChange={e => setQmTitle(e.target.value)}
+                        type="text" value={qmTitle} onChange={e => setQmTitle(e.target.value)}
                         placeholder="Ex: CATÁLOGO, VAGAS DE EMPREGO..."
                         className="w-full border border-slate-200 dark:border-slate-800 dark:bg-slate-950 px-3 py-2 rounded-xl text-xs focus:outline-none"
                       />
@@ -928,7 +928,7 @@ export default function SettingsPage({
                       </div>
                     </div>
                     <textarea 
-                      rows={4} required value={qmText} onChange={e => setQmText(e.target.value)}
+                      rows={4} value={qmText} onChange={e => setQmText(e.target.value)}
                       placeholder="Combine texto e links que serão enviados ao clicar no botão..."
                       className="w-full border border-slate-200 dark:border-slate-800 dark:bg-slate-950 px-3 py-2 rounded-xl text-xs focus:outline-none leading-relaxed font-sans"
                     />
