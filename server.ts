@@ -573,7 +573,7 @@ app.get('/api/conversations', async (req, res) => {
 
 app.post('/api/conversations', async (req, res) => {
   console.log("[API][NewChat] Body recebido:", JSON.stringify(req.body));
-  const { name, phone, sectorId, attendant_id } = req.body;
+  const { name, phone, sectorId, attendant_id, initialMessage } = req.body;
   if (!phone) return res.status(400).json({ error: 'Telefone é obrigatório' });
 
   const existing = await dbStore.getConversations();
@@ -597,7 +597,7 @@ app.post('/api/conversations', async (req, res) => {
     attendant_id: attendant_id || null, 
     status: attendant_id ? 'active' : 'waiting', 
     started_at: new Date().toISOString(),
-    last_message: 'Conversa iniciada',
+    last_message: initialMessage || 'Conversa iniciada',
     tags: [],
     created_at: new Date().toISOString()
   };
@@ -605,6 +605,20 @@ app.post('/api/conversations', async (req, res) => {
 
   await dbStore.saveConversation(newConv);
   broadcastUpdate('conversation_updated', newConv);
+
+  if (initialMessage) {
+    const newMsg: Message = {
+      id: "msg_" + Math.random().toString(36).substring(2, 9),
+      conversation_id: newConv.id,
+      sender_type: 'agent',
+      message: initialMessage,
+      created_at: new Date().toISOString()
+    };
+    await dbStore.saveMessage(newMsg);
+    broadcastUpdate('message_created', newMsg);
+    await whatsappService.sendWhatsAppMessage(newConv.customer_phone, initialMessage);
+  }
+
   res.json(newConv);
 });
 

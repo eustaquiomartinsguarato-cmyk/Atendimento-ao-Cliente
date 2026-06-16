@@ -53,6 +53,7 @@ export default function ActiveChats({
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [newChatPhone, setNewChatPhone] = useState('');
   const [newChatName, setNewChatName] = useState('');
+  const [newChatInitialMsg, setNewChatInitialMsg] = useState('');
   const [newChatLoading, setNewChatLoading] = useState(false);
 
   // Confirmation states to avoid window.confirm in iframe
@@ -422,7 +423,8 @@ export default function ActiveChats({
         body: JSON.stringify({
           name: newChatName || 'Novo Contato',
           phone: formattedPhone, // Usa o número formatado
-          attendant_id: activeAgent.id // Assign to current agent
+          attendant_id: activeAgent.id, // Assign to current agent
+          initialMessage: newChatInitialMsg
         })
       });
 
@@ -438,10 +440,11 @@ export default function ActiveChats({
       setNewChatOpen(false);
       setNewChatPhone('');
       setNewChatName('');
+      setNewChatInitialMsg('');
+      setNewChatLoading(false);
     } catch (err: any) {
       console.error("[NewChat] Erro:", err);
       alert(err.message);
-    } finally {
       setNewChatLoading(false);
     }
   };
@@ -1472,6 +1475,17 @@ export default function ActiveChats({
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-800 dark:text-white transition"
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-xs">Mensagem Inicial</label>
+                <textarea 
+                  value={newChatInitialMsg} 
+                  onChange={e => setNewChatInitialMsg(e.target.value)}
+                  placeholder="Escreva a primeira mensagem..." 
+                  className="w-full p-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none text-slate-800 dark:text-white transition"
+                  rows={3}
+                />
               </div>
               
               <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-xl border border-amber-100 dark:border-amber-900/40">
