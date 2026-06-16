@@ -44,14 +44,22 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
         hour12: false
     });
     
+    // Pega hora e minuto
     const parts = fmt.formatToParts(now);
     const weekday = parts.find(p => p.type === 'weekday')?.value || "";
     const hour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || "0", 10);
     
-    const isSaturdayAfter12 = weekday === 'sáb' && hour >= 12;
+    const minutesSinceMidnight = hour * 60 + minute;
+
+    // Regras de acesso livre
+    const isSaturdayAfter12 = weekday === 'sáb' && minutesSinceMidnight >= 720;
+    const isDailyLunch = minutesSinceMidnight >= 690 && minutesSinceMidnight < 780; // 11:30 a 13:00
     
-    const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) || isSaturdayAfter12 ? true : isWithinBusinessHours(settings.schedules);
-    console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}, SatAfter12: ${isSaturdayAfter12}): ${isBusinessHours}`);
+    const isFreeAccess = isSaturdayAfter12 || isDailyLunch;
+
+    const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) || isFreeAccess ? true : isWithinBusinessHours(settings.schedules);
+    console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}, FreeAccess: ${isFreeAccess}): ${isBusinessHours}`);
 
     if (!isBusinessHours) {
       // Re-fetch messages right before deciding, to be absolutely sure in case of race conditions
