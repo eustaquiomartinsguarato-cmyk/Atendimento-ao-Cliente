@@ -136,9 +136,12 @@ export class DbStore {
           end: "18:00"
         },
         quick_messages: [
-          { id: 'qm_vagas', title: 'VAGAS DE EMPREGOS', text: '💼 *VAGAS DE EMPREGOS*\n\nSeja bem-vindo! Candidate-se ou confira nossas oportunidades de emprego abertas no link abaixo:\n🔗 https://guarato.com.br/servicos/vagas', icon: 'Briefcase' },
-          { id: 'qm_ofertas', title: 'JORNAL DE OFERTAS', text: '📰 *JORNAL DE OFERTAS*\n\nPreparamos as melhores promoções para você! Acesse os preços especiais em nosso encarte/jornal de ofertas do mês:\n🔗 https://guarato.com.br/encarte-ofertas', icon: 'Newspaper' },
-          { id: 'qm_compras', title: 'COMPRAS ONLINE', text: '🛒 *COMPRAS ONLINE*\n\nConheça nossa loja virtual / catálogo de produtos online e faça suas compras sem sair de casa:\n🔗 https://applsguarato.com.br', icon: 'ShoppingBag' }
+          { id: 'qm_saudacao', title: 'SAUDAÇÃO', text: 'Olá! Tudo bem? Como posso ajudar você hoje na LS Guarato?', icon: 'MessageSquare' },
+          { id: 'qm_vendas', title: 'VENDAS', text: '📞 *VENDAS & TELEVENDAS LS GUARATO*\n\nNossos vendedores estão prontos para te atender! Caso precise cotar materiais específicos (cimento, gesso, areia, ferragens, tintas), envie seus itens que calcularemos o melhor valor.', icon: 'ShoppingBag' },
+          { id: 'qm_ecommerce', title: 'LOJA ONLINE', text: '🌐 *LOJA VIRTUAL / E-COMMERCE LS GUARATO*\n\nAcesse nosso site oficial para conferir nosso catálogo completo e comprar online com praticidade:\n🔗 https://applsguarato.com.br', icon: 'ShoppingBag' },
+          { id: 'qm_boleto', title: 'AVISO DE BOLETO', text: 'Olá! Segue o seu boleto para pagamento.', icon: 'CreditCard' },
+          { id: 'qm_nf', title: 'AVISO NF', text: 'Olá! Segue sua Nota Fiscal.', icon: 'FileText' },
+          { id: 'qm_comprovante', title: 'PEDIR COMPROVANTE', text: 'Por favor, poderia nos enviar o comprovante de pagamento?', icon: 'MessageSquare' }
         ]
       },
       auditLogs: []

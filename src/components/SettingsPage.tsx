@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, User, QuickMessage } from '../types/index.js';
-import { Save, HelpCircle, AlertCircle, Sparkles, DollarSign, Smartphone, Trash2, Pencil, Plus, X, Smile, Database, RefreshCw, CheckCircle } from 'lucide-react';
+import { Save, HelpCircle, AlertCircle, Sparkles, DollarSign, Smartphone, Trash2, Pencil, Plus, X, Smile, Database, RefreshCw, CheckCircle, MessageSquare } from 'lucide-react';
 import QrCodeWhatsApp from './QrCodeWhatsApp.js';
 
 interface SettingsProps {
@@ -740,54 +740,116 @@ export default function SettingsPage({
 
             {/* MENSAGENS RÁPIDAS (RESPOSTAS RÁPIDAS NO CHAT) */}
             <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-5">
-              <div className="border-b border-blank dark:border-slate-800 pb-3 flex justify-between items-center">
+              <div className="border-b border-blank dark:border-slate-800 pb-3 flex justify-between items-center bg-indigo-50/30 dark:bg-indigo-950/20 -m-6 mb-5 p-6 rounded-t-2xl">
                 <div>
-                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">Mensagens Rápidas (Atalhos no Chat)</h3>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">Customize os botões de atalho que aparecem para os atendentes na central de chats.</p>
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-indigo-500" />
+                    Mensagens Rápidas (Atalhos no Chat)
+                  </h3>
+                  <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">Customize os botões de atalho coloridos que aparecem abaixo da caixa de mensagem na central de chats.</p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-100 dark:border-slate-800 space-y-2.5">
-                  <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 tracking-wider uppercase block">Botões Atuais</h4>
+                <div className="bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
+                  <div className="flex justify-between items-center px-1">
+                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-350 tracking-wider uppercase block">Botões Ativos na Central de Chat</h4>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (confirm('Deseja restaurar as mensagens rápidas padrão da LS Guarato? Isso substituirá as atuais.')) {
+                          const defaults = [
+                            { id: 'qm_saudacao', title: 'SAUDAÇÃO', text: 'Olá! Tudo bem? Como posso ajudar você hoje na LS Guarato?', icon: 'MessageSquare' },
+                            { id: 'qm_vendas', title: 'VENDAS', text: '📞 *VENDAS & TELEVENDAS LS GUARATO*\n\nNossos vendedores estão prontos para te atender! Caso precise cotar materiais específicos (cimento, gesso, areia, ferragens, tintas), envie seus itens que calcularemos o melhor valor.', icon: 'ShoppingBag' },
+                            { id: 'qm_ecommerce', title: 'LOJA ONLINE', text: `🌐 *LOJA VIRTUAL / E-COMMERCE LS GUARATO*\n\nAcesse nosso site oficial para conferir nosso catálogo completo e comprar online com praticidade:\n🔗 ${storeLink || 'https://applsguarato.com.br'}`, icon: 'ShoppingBag' },
+                            { id: 'qm_boleto', title: 'AVISO DE BOLETO', text: 'Olá! Segue o seu boleto para pagamento.', icon: 'CreditCard' },
+                            { id: 'qm_nf', title: 'AVISO NF', text: 'Olá! Segue sua Nota Fiscal.', icon: 'FileText' },
+                            { id: 'qm_comprovante', title: 'PEDIR COMPROVANTE', text: 'Por favor, poderia nos enviar o comprovante de pagamento?', icon: 'MessageSquare' }
+                          ];
+                          setQuickMessages(defaults as any);
+                          await onSaveSettings({ quick_messages: defaults as any });
+                          setQmSuccessMsg('Modelos da LS Guarato carregados com sucesso!');
+                          setTimeout(() => setQmSuccessMsg(''), 3000);
+                        }
+                      }}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-bold uppercase hover:underline flex items-center gap-1.5 px-3 py-1 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg transition"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Restaurar Padrões da Empresa
+                    </button>
+                  </div>
                   
                   {quickMessages.length === 0 ? (
-                    <div className="text-center p-4 text-[11px] text-slate-400 font-semibold">Nenhuma mensagem rápida registrada.</div>
+                    <div className="text-center py-10 px-6 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 space-y-3">
+                      <div className="flex justify-center">
+                        <div className="w-12 h-12 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center">
+                          <MessageSquare className="w-6 h-6 text-slate-300" />
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Nenhum botão configurado</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Os atendentes ainda não possuem atalhos de mensagens rápidas no chat.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const defaults = [
+                            { id: 'qm_saudacao', title: 'SAUDAÇÃO', text: 'Olá! Tudo bem? Como posso ajudar você hoje na LS Guarato?', icon: 'MessageSquare' },
+                            { id: 'qm_vendas', title: 'VENDAS', text: '📞 *VENDAS & TELEVENDAS LS GUARATO*\n\nNossos vendedores estão prontos para te atender! Caso precise cotar materiais específicos (cimento, gesso, areia, ferragens, tintas), envie seus itens que calcularemos o melhor valor.', icon: 'ShoppingBag' },
+                            { id: 'qm_ecommerce', title: 'LOJA ONLINE', text: `🌐 *LOJA VIRTUAL / E-COMMERCE LS GUARATO*\n\nAcesse nosso site oficial para conferir nosso catálogo completo e comprar online com praticidade:\n🔗 ${storeLink || 'https://applsguarato.com.br'}`, icon: 'ShoppingBag' },
+                            { id: 'qm_boleto', title: 'AVISO DE BOLETO', text: 'Olá! Segue o seu boleto para pagamento.', icon: 'CreditCard' },
+                            { id: 'qm_nf', title: 'AVISO NF', text: 'Olá! Segue sua Nota Fiscal.', icon: 'FileText' },
+                            { id: 'qm_comprovante', title: 'PEDIR COMPROVANTE', text: 'Por favor, poderia nos enviar o comprovante de pagamento?', icon: 'MessageSquare' }
+                          ];
+                          setQuickMessages(defaults as any);
+                          await onSaveSettings({ quick_messages: defaults as any });
+                          setQmSuccessMsg('Modelos da LS Guarato configurados!');
+                          setTimeout(() => setQmSuccessMsg(''), 3000);
+                        }}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-md hover:shadow-lg active:scale-95"
+                      >
+                        Carregar Modelos da LS Guarato
+                      </button>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {quickMessages.map(qm => (
-                        <div key={qm.id} className="bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800 rounded-xl p-3 shadow-inner flex flex-col justify-between space-y-2">
-                          <div>
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px] uppercase tracking-wider">{qm.title}</span>
-                              <div className="flex items-center space-x-1">
-                                <button 
-                                  type="button" 
-                                  onClick={() => {
-                                    setQmId(qm.id);
-                                    setQmTitle(qm.title);
-                                    setQmText(qm.text);
-                                    setQmIcon(qm.icon || 'MessageSquare');
-                                    window.scrollTo({ top: 1000, behavior: 'smooth' });
-                                  }}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-500"
-                                >
-                                  <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  type="button" 
-                                  onClick={async () => {
+                        <div key={qm.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-indigo-500">
+                          <div className="flex items-center justify-between mb-2.5">
+                            <h5 className="font-extrabold text-slate-800 dark:text-slate-100 text-[10px] uppercase tracking-widest">{qm.title}</h5>
+                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  setQmId(qm.id);
+                                  setQmTitle(qm.title);
+                                  setQmText(qm.text);
+                                  setQmIcon(qm.icon || 'MessageSquare');
+                                  window.scrollTo({ top: 1200, behavior: 'smooth' });
+                                }}
+                                className="p-1.5 hover:bg-indigo-50 dark:hover:bg-indigo-900/40 rounded-lg text-indigo-600 dark:text-indigo-400 transition"
+                                title="Editar"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={async () => {
+                                  if (confirm(`Excluir o botão "${qm.title}"?`)) {
                                     const updated = quickMessages.filter(m => m.id !== qm.id);
                                     setQuickMessages(updated);
                                     await onSaveSettings({ quick_messages: updated });
-                                  }}
-                                  className="p-1 rounded text-slate-405 hover:bg-rose-50 hover:text-rose-500"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                                  }
+                                }}
+                                className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/40 rounded-lg text-rose-500 transition"
+                                title="Excluir"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
-                            <p className="text-[10px] text-slate-450 dark:text-slate-400 block mt-1 line-clamp-2 font-mono leading-relaxed bg-slate-50 dark:bg-slate-950 p-1.5 rounded">{qm.text}</p>
+                          </div>
+                          <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 group-hover:border-indigo-100 dark:group-hover:border-indigo-900/30 transition">
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed font-sans">{qm.text}</p>
                           </div>
                         </div>
                       ))}

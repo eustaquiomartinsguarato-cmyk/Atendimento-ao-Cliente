@@ -1360,15 +1360,21 @@ export default function ActiveChats({
                     </button>
                   </div>
 
-                  {/* NOVOS BOTÕES DE AÇÃO ABAIXO */}
-                  <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <button type="button" onClick={() => sendQuickMessage("Olá! Tudo bem? Como posso ajudar você hoje na LS Guarato?")} className="px-2.5 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50 rounded-lg text-[10px] font-bold transition hover:bg-blue-100 cursor-pointer">SAUDAÇÃO</button>
-                    <button type="button" onClick={() => sendQuickMessage(`📞 *VENDAS & TELEVENDAS LS GUARATO*\n\nNossos vendedores estão prontos para te atender! Caso precise cotar materiais específicos (cimento, gesso, areia, ferragens, tintas), envie seus itens que calcularemos o melhor valor.`)} className="px-2.5 py-1.5 bg-teal-50 dark:bg-teal-950/30 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-900/50 rounded-lg text-[10px] font-bold transition hover:bg-teal-100 cursor-pointer">VENDAS</button>
-                    <button type="button" onClick={() => sendQuickMessage(`🌐 *LOJA VIRTUAL / E-COMMERCE LS GUARATO*\n\nAcesse nosso site oficial para conferir nosso catálogo completo e comprar online com praticidade:\n🔗 ${settings?.store_link || 'https://guaratoconstrucao.com.br'}`)} className="px-2.5 py-1.5 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-900/50 rounded-lg text-[10px] font-bold transition hover:bg-sky-100 cursor-pointer">LOJA ONLINE</button>
-                    <button type="button" onClick={() => sendQuickMessage("Olá! Segue o seu boleto para pagamento.")} className="px-2.5 py-1.5 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/50 rounded-lg text-[10px] font-bold transition hover:bg-amber-100 cursor-pointer">AVISO DE BOLETO</button>
-                    <button type="button" onClick={() => sendQuickMessage("Olá! Segue sua Nota Fiscal.")} className="px-2.5 py-1.5 bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/50 rounded-lg text-[10px] font-bold transition hover:bg-purple-100 cursor-pointer">AVISO NF</button>
-                    <button type="button" onClick={() => sendQuickMessage("Por favor, poderia nos enviar o comprovante de pagamento?")} className="px-2.5 py-1.5 bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-900/50 rounded-lg text-[10px] font-bold transition hover:bg-orange-100 cursor-pointer">PEDIR COMPROVANTE</button>
-                  </div>
+                  {/* BOTÕES DE RESPOSTA RÁPIDA DINÂMICOS (Configuráveis em Parâmetros) */}
+                  {settings?.quick_messages && settings.quick_messages.length > 0 && (
+                    <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                      {settings.quick_messages.map((qm) => (
+                        <button 
+                          key={qm.id}
+                          type="button" 
+                          onClick={() => sendQuickMessage(qm.text)} 
+                          className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold transition hover:bg-slate-100 cursor-pointer shadow-sm hover:shadow flex items-center space-x-1"
+                        >
+                          <span>{qm.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <form onSubmit={handleSendSubmit} className="flex gap-2.5 items-center">
                     <input
