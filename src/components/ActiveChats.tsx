@@ -871,6 +871,24 @@ export default function ActiveChats({
                               : 'bg-white dark:bg-slate-850 text-slate-800 dark:text-slate-150 rounded-bl-none border border-slate-200 dark:border-slate-800'
                           }`}>
                             <p className="whitespace-pre-wrap">{msg.message}</p>
+                            
+                            {msg.file_url && (
+                              <div className="mt-2">
+                                {msg.mimetype?.startsWith('image/') ? (
+                                  <img 
+                                    src={msg.file_url} 
+                                    alt="Imagem" 
+                                    className="max-w-full rounded-lg max-h-32 object-contain cursor-pointer"
+                                    onClick={() => window.open(msg.file_url, '_blank')}
+                                  />
+                                ) : (
+                                  <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline break-all">
+                                    {msg.file_name || 'Abrir arquivo'}
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
                             <div className="text-[8px] text-right mt-0.5 opacity-60">
                               {new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </div>
