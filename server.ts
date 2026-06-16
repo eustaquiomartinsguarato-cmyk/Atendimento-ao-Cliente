@@ -579,6 +579,12 @@ app.post('/api/conversations', async (req, res) => {
   const found = existing.find(c => c.customer_phone.replace(/\D/g, '') === phone.replace(/\D/g, '') && c.status !== 'closed');
   
   if (found) {
+    if (attendant_id) {
+        found.attendant_id = attendant_id;
+        found.status = 'active';
+        await dbStore.saveConversation(found);
+        broadcastUpdate('conversation_updated', found);
+    }
     return res.json(found);
   }
 
