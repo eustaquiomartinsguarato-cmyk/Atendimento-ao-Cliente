@@ -404,14 +404,24 @@ export default function ActiveChats({
     if (!newChatPhone.trim() || newChatLoading) return;
     
     setNewChatLoading(true);
-    console.log("[NewChat] Iniciando chat para:", newChatPhone, "Atendente:", activeAgent.id);
+    let formattedPhone = newChatPhone.replace(/\D/g, '');
+    if (formattedPhone.length === 10) {
+      // Adiciona o '9' para números mobile se estiver faltando (DDD + 8 dígitos)
+      formattedPhone = formattedPhone.substring(0, 2) + '9' + formattedPhone.substring(2);
+    }
+    if (formattedPhone.length === 11) {
+      // Adiciona o código do país '55' se estiver faltando
+      formattedPhone = '55' + formattedPhone;
+    }
+
+    console.log("[NewChat] Iniciando chat para formatado:", formattedPhone, "Atendente:", activeAgent.id);
     try {
       const res = await fetch('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: newChatName || 'Novo Contato',
-          phone: newChatPhone.replace(/\D/g, ''),
+          phone: formattedPhone, // Usa o número formatado
           attendant_id: activeAgent.id // Assign to current agent
         })
       });

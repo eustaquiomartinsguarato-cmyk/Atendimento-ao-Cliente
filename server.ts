@@ -972,6 +972,7 @@ app.post('/api/messages', async (req, res) => {
   // Send real WhatsApp if agent or system replies to a real WA conversation
   if (sender_type !== 'customer') {
     if (!conv.customer_phone.includes("(Simulação)")) {
+       console.log("[WhatsApp] Tentando enviar mensagem para:", conv.customer_phone, "Mensagem:", message);
        await whatsappService.sendWhatsAppMessage(conv.customer_phone, message);
     }
   }
