@@ -1298,56 +1298,15 @@ export default function ActiveChats({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {/* Quick message buttons from settings */}
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1 select-none">
-                      Mensagens Rápidas:
-                    </span>
-                    
-                    {settings?.quick_messages && settings.quick_messages.length > 0 ? (
-                      settings.quick_messages.map(qm => {
-                        const IconMap: any = {
-                          Briefcase, Newspaper, ShoppingBag, CreditCard, FileText, MessageSquare, AlertCircle
-                        };
-                        const Icon = IconMap[qm.icon || 'MessageSquare'] || MessageSquare;
-                        
-                        return (
-                          <button
-                            key={qm.id}
-                            type="button"
-                            onClick={() => sendQuickMessage(qm.text)}
-                            disabled={sending}
-                            className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-brand-primary/10 text-slate-705 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-brand-primary/40 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
-                            title={qm.title}
-                          >
-                            <Icon className="w-3.5 h-3.5 text-brand-sidebar" />
-                            <span>{qm.title}</span>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <span className="text-[10px] text-slate-400 italic font-medium">Nenhuma configurada</span>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={() => openPixBilling(selectedConvId)}
-                      disabled={sending}
-                      className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-amber-50 dark:hover:bg-amber-100 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-amber-200 dark:hover:border-amber-900/60 rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
-                      title="Enviar faturamento PIX (com valor)"
-                    >
-                      <CreditCard className="w-3.5 h-3.5 text-amber-500" />
-                      <span>GERAR PIX</span>
-                    </button>
-                    
-                    {/* Add file input */}
+                  {/* Botões de Ação e Mensagens Rápidas */}
+                  <div className="flex flex-wrap gap-2 items-center pt-1 pb-1">
+                    {/* BOTÃO FIXO: ANEXAR ARQUIVO */}
                     <input 
                       type="file" 
                       ref={fileInputRef} 
                       className="hidden" 
                       onChange={handleFileChange}
                     />
-                    
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -1355,26 +1314,47 @@ export default function ActiveChats({
                       className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
                       title="Anexar Boleto, NF ou Comprovante"
                     >
-                      <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+                      <Paperclip className="w-3.5 h-3.5 text-blue-500" />
                       <span>ANEXAR ARQUIVO</span>
                     </button>
-                  </div>
 
-                  {/* BOTÕES DE RESPOSTA RÁPIDA DINÂMICOS (Configuráveis em Parâmetros) */}
-                  {settings?.quick_messages && settings.quick_messages.length > 0 && (
-                    <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-slate-100 dark:border-slate-800">
-                      {settings.quick_messages.map((qm) => (
-                        <button 
+                    {/* BOTÃO FIXO: GERAR PIX */}
+                    <button
+                      type="button"
+                      onClick={() => openPixBilling(selectedConvId)}
+                      disabled={sending}
+                      className="px-2.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
+                      title="Enviar faturamento PIX (com valor)"
+                    >
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>GERAR PIX</span>
+                    </button>
+
+                    {settings?.quick_messages && settings.quick_messages.length > 0 && (
+                      <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                    )}
+
+                    {/* MENAGENS RÁPIDAS DINÂMICAS */}
+                    {settings?.quick_messages?.map(qm => {
+                      const IconMap: any = {
+                        Briefcase, Newspaper, ShoppingBag, CreditCard, FileText, MessageSquare, AlertCircle
+                      };
+                      const Icon = IconMap[qm.icon || 'MessageSquare'] || MessageSquare;
+                      return (
+                        <button
                           key={qm.id}
-                          type="button" 
-                          onClick={() => sendQuickMessage(qm.text)} 
-                          className="px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold transition hover:bg-slate-100 cursor-pointer shadow-sm hover:shadow flex items-center space-x-1"
+                          type="button"
+                          onClick={() => sendQuickMessage(qm.text)}
+                          disabled={sending}
+                          className="px-2.5 py-1.5 bg-white dark:bg-slate-900 hover:bg-brand-primary/5 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:border-brand-primary/40 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs select-none disabled:opacity-50"
+                          title={qm.title}
                         >
+                          <Icon className="w-3.5 h-3.5 text-brand-sidebar" />
                           <span>{qm.title}</span>
                         </button>
-                      ))}
-                    </div>
-                  )}
+                      );
+                    })}
+                  </div>
 
                   <form onSubmit={handleSendSubmit} className="flex gap-2.5 items-center">
                     <input
