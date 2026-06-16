@@ -816,6 +816,7 @@ export class WhatsappService {
   }
 
   async sendWhatsAppMessage(phone: string, text: string): Promise<boolean> {
+    console.log("[WhatsApp] sendWhatsAppMessage chamado para:", phone);
     if (!this.socket || this.status !== 'CONNECTED') {
       console.error(`[WhatsApp] Cannot send WA message: Status=${this.status}, Socket=${!!this.socket}`);
       return false;
