@@ -10,7 +10,7 @@ import pino from 'pino';
 import * as path from 'path';
 import * as fs from 'fs';
 import { dbStore } from '../repositories/dbStore.js';
-import { handleIncomingMessageForChatbot } from './chatbot.js';
+import { handleIncomingMessageForChatbot, isFreeAccessTime } from './chatbot.js';
 import { Conversation, Message } from '../types/index.js';
 
 // Robust compatibility wrapper to support both ESM default import and esbuild CommonJS bundle issues
@@ -720,7 +720,7 @@ export class WhatsappService {
           customer_phone: phone,
           sector_id: null,
           attendant_id: null,
-          status: 'chatbot' as const,
+          status: isFreeAccessTime() ? 'chatbot' : 'waiting',
           started_at: new Date().toISOString(),
           last_message: finalMessageText,
           tags: [],

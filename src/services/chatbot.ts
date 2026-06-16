@@ -5,6 +5,29 @@ import { isWithinBusinessHours } from '../lib/schedule.js';
 const processingLocks = new Set<string>();
 const lastExecutionTimes = new Map<string, number>();
 
+export function isFreeAccessTime(): boolean {
+    const now = new Date();
+    const fmt = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+    
+    const parts = fmt.formatToParts(now);
+    const weekday = parts.find(p => p.type === 'weekday')?.value || "";
+    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
+    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || "0", 10);
+    
+    const minutesSinceMidnight = hour * 60 + minute;
+
+    const isSaturdayAfter12 = weekday === 'sáb' && minutesSinceMidnight >= 720;
+    const isDailyLunch = minutesSinceMidnight >= 690 && minutesSinceMidnight < 780; // 11:30 a 13:00
+    
+    return isSaturdayAfter12 || isDailyLunch;
+}
+
 export async function handleIncomingMessageForChatbot(conv: Conversation, text: string): Promise<Message | null> {
   const now = Date.now();
   
@@ -34,30 +57,8 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
     const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
     const forceOutOfHoursInSim = isSimulation && conv.character && (conv.character.toLowerCase().includes("fora de horário") || conv.character.toLowerCase().includes("fora do horário"));
     
-    // Saturday after 12:00 = All available
-    const now = new Date();
-    const fmt = new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        hour: 'numeric',
-        minute: 'numeric',
-        weekday: 'short',
-        hour12: false
-    });
     
-    // Pega hora e minuto
-    const parts = fmt.formatToParts(now);
-    const weekday = parts.find(p => p.type === 'weekday')?.value || "";
-    const hour = parseInt(parts.find(p => p.type === 'hour')?.value || "0", 10);
-    const minute = parseInt(parts.find(p => p.type === 'minute')?.value || "0", 10);
-    
-    const minutesSinceMidnight = hour * 60 + minute;
-
-    // Regras de acesso livre
-    const isSaturdayAfter12 = weekday === 'sáb' && minutesSinceMidnight >= 720;
-    const isDailyLunch = minutesSinceMidnight >= 690 && minutesSinceMidnight < 780; // 11:30 a 13:00
-    
-    const isFreeAccess = isSaturdayAfter12 || isDailyLunch;
-
+    const isFreeAccess = isFreeAccessTime();
     const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) || isFreeAccess ? true : isWithinBusinessHours(settings.schedules);
     console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}, FreeAccess: ${isFreeAccess}): ${isBusinessHours}`);
 
