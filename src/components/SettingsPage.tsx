@@ -467,6 +467,25 @@ export default function SettingsPage({
               <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm border-b border-slate-50 dark:border-slate-800 pb-3">Mensagens Globais do Robô</h3>
               
               <div className="space-y-5 text-xs">
+                {/* INFORMATIVE BOX ABOUT DYNAMIC MENU */}
+                <div className="bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-xl space-y-2">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold uppercase text-[10px] tracking-wider">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Como funciona o Menu do WhatsApp?
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    O robô monta o menu inicial automaticamente assim:
+                    <br />
+                    1. Ele envia sua <b>Saudação</b> personalizada.
+                    <br />
+                    2. Ele lista os <b>Setores</b> ativos (ex: <i>1 para Televendas</i>).
+                    <br />
+                    3. Ele adiciona a opção de falar com atendente humano.
+                    <br />
+                    <span className="font-bold text-slate-700 dark:text-slate-200">Para mudar os nomes (Televendas, RH, etc), altere diretamente na página de "Setores" no menu lateral.</span>
+                  </p>
+                </div>
+
                 {/* Welcome Message input */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">

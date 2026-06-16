@@ -129,6 +129,20 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
       };
     }
 
+    // Check "Finalizar" trigger from main menu
+    if (cleanText === '9' || cleanText.includes("finalizar") || cleanText.includes("encerrar")) {
+      conv.status = 'closed';
+      await dbStore.saveConversation(conv);
+      const closureMsg = settings.closure_message || `🏁 Atendimento finalizado.\nObrigado por falar com a ${settings.company_name || 'LS GUARATO'}!`;
+      return {
+        id: "msg_bot_close_" + Date.now(),
+        conversation_id: conv.id,
+        sender_type: 'system',
+        message: closureMsg,
+        created_at: new Date().toISOString()
+      };
+    }
+
     // Check general custom bot options trigger keys
     if (settings.bot_options && settings.bot_options.length > 0) {
       const matchedOpt = settings.bot_options.find(
@@ -148,11 +162,12 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
     // Default Greeting & Options Menu if no option matched
     const sectorOptions = activeSectors.map((s, i) => `👉 *Digite "${i + 1}"* para *${s.name.toUpperCase()}*`).join('\n');
     const attendantText = `👉 *Digite "${activeSectors.length + 1}"* para *FALAR COM ATENDENTE*`;
+    const finishText = `👉 *Digite "9"* para *FINALIZAR ATENDIMENTO*`;
     
     let customOptsText = "";
     if (settings.bot_options && settings.bot_options.length > 0) {
-      // Filter out options that conflict with our main sequential numbering if they are digits from 1 to attendantTriggerNumber
-      const reservedTriggers = Array.from({ length: activeSectors.length + 1 }, (_, i) => String(i + 1));
+      // Filter out options that conflict with our main sequential numbering
+      const reservedTriggers = [...Array.from({ length: activeSectors.length + 1 }, (_, i) => String(i + 1)), "9"];
       const relevantOpts = settings.bot_options.filter(opt => !reservedTriggers.includes(opt.trigger_key));
       
       if (relevantOpts.length > 0) {
@@ -164,7 +179,7 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
       id: "msg_bot_" + Date.now(),
       conversation_id: conv.id,
       sender_type: 'system',
-      message: `${settings.welcome_message}\n\nOpções disponíveis:\n${sectorOptions}\n${attendantText}${customOptsText}`,
+      message: `${settings.welcome_message}\n\nOpções disponíveis:\n${sectorOptions}\n${attendantText}\n${finishText}${customOptsText}`,
       created_at: new Date().toISOString()
     };
   }
@@ -191,7 +206,7 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
       } else if (isCobranca) {
         reply = "🧾 Para emitir a 2ª via do seu boleto ou Nota Fiscal, por favor indique o CNPJ/CPF do cadastro ou o número do pedido.";
       } else if (isEntregas) {
-        reply = "🚚 Para rastrear sua entrega de materiais de construção, por favor informe o número do Orçamento ou Nota Fiscal.";
+        reply = "🚚 PARA RASTREAR SUA ENTREGA, POR FAVOR INFORME O NÚMERO DO SEU PEDIDO.";
       } else if (isPagamentos) {
         reply = "💳 Por favor, envie o comprovante de pagamento em formato de imagem ou PDF para conciliação financeira.";
       }
@@ -214,7 +229,7 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
       } else if (isCobranca) {
         reply = "🤝 Deseja realizar um acordo de parcelamento ou renegociação de débito? Informe seu melhor telefone de contato para retorno.";
       } else if (isEntregas) {
-        reply = "📅 Para agendar ou alterar a data de recebimento de materiais pesados (areia, brita, ferro), informe o endereço da obra.";
+        reply = "📅 Para agendar ou alterar a data de recebimento, informe o endereço.";
       } else if (isPagamentos) {
         reply = "👤 Caso seja fornecedor e deseja consultar pagamentos agendados, informe a Razão Social da sua empresa.";
       }
@@ -224,6 +239,29 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
         conversation_id: conv.id,
         sender_type: 'system',
         message: reply,
+        created_at: new Date().toISOString()
+      };
+    }
+
+    // BACK TO MAIN MENU
+    if (cleanText === '0' || cleanText.includes("voltar") || cleanText.includes("menu anterior")) {
+      conv.sector_id = null;
+      await dbStore.saveConversation(conv);
+      return handleIncomingMessageForChatbot(conv, "ola"); // Re-run to show main menu
+    }
+
+    // CLOSE ATTENDANCE
+    if (cleanText === '9' || cleanText.includes("finalizar") || cleanText.includes("encerrar") || cleanText.includes("tchau")) {
+      conv.status = 'closed';
+      await dbStore.saveConversation(conv);
+      
+      const closureMsg = settings.closure_message || `🏁 Atendimento finalizado pelo cliente.\nObrigado por falar com a ${settings.company_name || 'LS GUARATO'}!`;
+      
+      return {
+        id: "msg_bot_close_" + Date.now(),
+        conversation_id: conv.id,
+        sender_type: 'system',
+        message: closureMsg,
         created_at: new Date().toISOString()
       };
     }
@@ -257,25 +295,27 @@ function createSubmenuMessage(convId: string, sector: Sector): Message {
   const idLower = sector.id.toLowerCase();
 
   if (nameLower === "rh" || idLower.includes("rh")) {
-    subText = "1. Enviar currículo\n2. Consultar vagas\n3. Falar com responsável do RH\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Enviar currículo\n2. Consultar vagas\n3. Falar com responsável do RH";
   } else if (nameLower.includes("vendas") || nameLower.includes("televendas") || idLower.includes("televendas") || idLower.includes("vendas")) {
-    subText = "1. Fazer novo pedido / Orçamento\n2. Consultar pedido\n3. Promoções da semana\n4. Falar com vendedor\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Fazer novo pedido / Orçamento\n2. Consultar pedido\n3. Promoções da semana\n4. Falar com vendedor";
   } else if (nameLower.includes("cobrança") || nameLower.includes("cobranca") || idLower.includes("cobranca")) {
-    subText = "1. Obter 2ª via de Boleto / Nota Fiscal\n2. Acordo Financeiro\n3. Falar com setor Financeiro\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Obter 2ª via de Boleto / Nota Fiscal\n2. Acordo Financeiro\n3. Falar com setor Financeiro";
   } else if (nameLower.includes("entregas") || nameLower.includes("entrega") || idLower.includes("entrega")) {
-    subText = "1. Acompanhar Entregas\n2. Agendar Recebimento / Descarregamento\n3. Falar com SAC Entregas\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Acompanhar Entregas\n2. Agendar Recebimento / Descarregamento\n3. Falar com SAC Entregas";
   } else if (nameLower.includes("pagamentos") || nameLower.includes("pagamento") || idLower.includes("pagamento")) {
-    subText = "1. Enviar Comprovante de Pagamento\n2. Consultar Contas a Pagar / Fornecedor\n3. Falar com responsável Financeiro\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Enviar Comprovante de Pagamento\n2. Consultar Contas a Pagar / Fornecedor\n3. Falar com responsável Financeiro";
   } else {
     // Elegant dynamic fallback for any other customized sector
-    subText = "1. Solicitar serviço deste setor\n2. Tirar uma dúvida\n3. Falar com atendente deste setor\n\n_Dica: Digite o número da opção desejada._";
+    subText = "1. Solicitar serviço deste setor\n2. Tirar uma dúvida\n3. Falar com atendente deste setor";
   }
+
+  const footer = "\n\n0. Voltar ao menu anterior\n9. Finalizar atendimento\n\n_Dica: Digite o número da opção desejada._";
 
   return {
     id: "msg_bot_" + Date.now(),
     conversation_id: convId,
     sender_type: 'system',
-    message: `Selecione uma das opções do setor *${sector.name.toUpperCase()}*:\n\n${subText}`,
+    message: `Selecione uma das opções do setor *${sector.name.toUpperCase()}*:\n\n${subText}${footer}`,
     created_at: new Date().toISOString()
   };
 }
