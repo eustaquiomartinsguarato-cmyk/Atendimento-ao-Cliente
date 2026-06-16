@@ -2,53 +2,74 @@ import { dbStore } from '../repositories/dbStore.js';
 import { Conversation, Message, Sector } from '../types/index.js';
 import { isWithinBusinessHours } from '../lib/schedule.js';
 
+const processingLocks = new Set<string>();
+const lastExecutionTimes = new Map<string, number>();
+
 export async function handleIncomingMessageForChatbot(conv: Conversation, text: string): Promise<Message | null> {
-  const settings = await dbStore.getSettings();
-  const sectors = await dbStore.getSectors();
+  const now = Date.now();
   
-  const cleanText = text.trim().toLowerCase();
+  // Prevent parallel processing for the same conversation
+  if (processingLocks.has(conv.id)) {
+    console.log(`[Chatbot] Already processing conversation ${conv.id}, skipping duplicate request.`);
+    return null;
+  }
 
-  // Check if we are outside of business hours (permit simulated conversations to bypass by default so they can be tested anytime)
-  const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
-  const forceOutOfHoursInSim = isSimulation && conv.character && (conv.character.toLowerCase().includes("fora de horário") || conv.character.toLowerCase().includes("fora do horário"));
-  
-  const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) ? true : isWithinBusinessHours(settings.schedules);
-  console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}): ${isBusinessHours}`);
+  // Prevent sending multiple bot messages (like out-of-hours) in rapid succession (cooldown 4s)
+  const lastTime = lastExecutionTimes.get(conv.id) || 0;
+  if (now - lastTime < 4000) {
+    console.log(`[Chatbot] Cooldown active for conversation ${conv.id}. Ignoring duplicate triggered message.`);
+    return null;
+  }
 
-  if (!isBusinessHours) {
-    // Check if we have already sent an out-of-hours message in this conversation recently in memory
-    // or if it's already in the database
-    const msgs = await dbStore.getMessagesForConversation(conv.id);
+  processingLocks.add(conv.id);
+  lastExecutionTimes.set(conv.id, now);
+
+  try {
+    const settings = await dbStore.getSettings();
+    const sectors = await dbStore.getSectors();
     
-    // Find the index of the most recent "Atendimento encerrado" message
-    const lastClosureIndex = [...msgs].reverse().findIndex(m => 
-      m.sender_type === 'system' && m.message.includes("🏁 Atendimento encerrado")
-    );
-    
-    // Important: we only look for the out-of-hours message IN THE CURRENT SESSION (after the last closure)
-    const currentSessionMsgs = lastClosureIndex === -1 ? msgs : msgs.slice(msgs.length - lastClosureIndex);
+    const cleanText = text.trim().toLowerCase();
 
-    const hasSentOutOfHours = currentSessionMsgs.some(m => 
-        m.sender_type === 'system' && 
-        (m.message === settings.out_of_hours_message ||
-         m.message.includes("horário de atendimento") || 
-         m.message.includes("horário") || 
-         m.message.includes("expediente") || 
-         m.message.includes("no momento estamos fora"))
+    // Check if we are outside of business hours (permit simulated conversations to bypass by default so they can be tested anytime)
+    const isSimulation = !!conv.character || (conv.customer_phone && conv.customer_phone.includes("(Simulação)"));
+    const forceOutOfHoursInSim = isSimulation && conv.character && (conv.character.toLowerCase().includes("fora de horário") || conv.character.toLowerCase().includes("fora do horário"));
+    
+    const isBusinessHours = (isSimulation && !forceOutOfHoursInSim) ? true : isWithinBusinessHours(settings.schedules);
+    console.log(`[Chatbot] Business hours check for ${conv.id} (Sim: ${isSimulation}, ForceClosed: ${!!forceOutOfHoursInSim}): ${isBusinessHours}`);
+
+    if (!isBusinessHours) {
+      // Re-fetch messages right before deciding, to be absolutely sure in case of race conditions
+      const msgs = await dbStore.getMessagesForConversation(conv.id);
+      
+      // Find the index of the most recent "Atendimento encerrado" message
+      const lastClosureIndex = [...msgs].reverse().findIndex(m => 
+        m.sender_type === 'system' && m.message.includes("🏁 Atendimento encerrado")
       );
-    
-    if (!hasSentOutOfHours) {
-      console.log(`[Chatbot] Sending first out-of-hours message for ${conv.id}`);
-      return {
-        id: "msg_bot_out_of_hours_" + Date.now(),
-        conversation_id: conv.id,
-        sender_type: 'system',
-        message: settings.out_of_hours_message || "Olá! No momento estamos fora do nosso horário de atendimento. Nosso expediente é de Segunda a Sexta das 08:00 às 18:00.\n\nRetornaremos sua mensagem assim que possível! 🕒",
-        created_at: new Date().toISOString()
-      };
-    }
+      
+      // Important: we only look for the out-of-hours message IN THE CURRENT SESSION (after the last closure)
+      const currentSessionMsgs = lastClosureIndex === -1 ? msgs : msgs.slice(msgs.length - lastClosureIndex);
 
-    // If already warned but closed, we ONLY respond if it's one of the automatic options.
+      const hasSentOutOfHours = currentSessionMsgs.some(m => 
+          m.sender_type === 'system' && 
+          (m.message === settings.out_of_hours_message ||
+           m.message.includes("horário de atendimento") || 
+           m.message.includes("horário") || 
+           m.message.includes("expediente") || 
+           m.message.includes("no momento estamos fora"))
+        );
+      
+      if (!hasSentOutOfHours) {
+        console.log(`[Chatbot] Sending first out-of-hours message for ${conv.id}`);
+        return {
+          id: "msg_bot_out_of_hours_" + Date.now(),
+          conversation_id: conv.id,
+          sender_type: 'system',
+          message: settings.out_of_hours_message || "Olá! No momento estamos fora do nosso horário de atendimento. Nosso expediente é de Segunda a Sexta das 08:00 às 18:00.\n\nRetornaremos sua mensagem assim que possível! 🕒",
+          created_at: new Date().toISOString()
+        };
+      }
+
+      // If already warned but closed, we ONLY respond if it's one of the automatic options.
     // We do NOT want to show the welcome menu while closed.
     const matchedOption = settings.bot_options?.find(opt => 
       opt.trigger_key && cleanText.includes(opt.trigger_key.toLowerCase())
@@ -225,6 +246,9 @@ export async function handleIncomingMessageForChatbot(conv: Conversation, text: 
   }
 
   return null;
+  } finally {
+    processingLocks.delete(conv.id);
+  }
 }
 
 function createSubmenuMessage(convId: string, sector: Sector): Message {

@@ -28,6 +28,7 @@ export class WhatsappService {
 
   private isInitializing = false;
   private reconnectTimeout: any = null;
+  private statusNotifyTimeout: any = null;
   private attemptCount = 0;
 
   constructor() {}
@@ -529,6 +530,16 @@ export class WhatsappService {
   }
 
   private notify(event: string, data: any) {
+    if (event === 'status_change') {
+      if (this.statusNotifyTimeout) clearTimeout(this.statusNotifyTimeout);
+      this.statusNotifyTimeout = setTimeout(() => {
+        this.listeners.forEach(cb => {
+          try { cb(event, data); } catch(e) {}
+        });
+      }, 1000); // 1 second debounce for status changes to UI
+      return;
+    }
+
     this.listeners.forEach(cb => {
       try { cb(event, data); } catch(e) {}
     });

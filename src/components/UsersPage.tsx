@@ -252,7 +252,7 @@ export default function UsersPage({
             <div className="divide-y divide-slate-50 dark:divide-slate-800">
               {users.map(u => {
                 const sector = sectors.find(s => s.id === u.sector_id);
-                const isEmojiPhoto = u.photo && !u.photo.startsWith('http');
+                const isEmojiPhoto = u.photo && u.photo.length < 10 && !u.photo.includes('/') && !u.photo.includes('.');
                 const isConfirmingDelete = confirmDeleteId === u.id;
                 
                 return (

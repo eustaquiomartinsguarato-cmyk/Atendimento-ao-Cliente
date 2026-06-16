@@ -660,11 +660,17 @@ export default function ActiveChats({
 
         {/* Current logged active operator profile footer info */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-905 bg-slate-50/50 dark:bg-slate-950/40 flex items-center space-x-3.5">
-          <img 
-            src={activeAgent.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces"} 
-            alt={activeAgent.name} 
-            className="w-9 h-9 rounded-xl object-cover ring-2 ring-slate-205"
-          />
+          {activeAgent.photo && activeAgent.photo.length < 10 && !activeAgent.photo.includes('/') && !activeAgent.photo.includes('.') ? (
+            <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xl ring-2 ring-slate-300">
+              {activeAgent.photo}
+            </div>
+          ) : (
+            <img 
+              src={activeAgent.photo || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces"} 
+              alt={activeAgent.name} 
+              className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-205"
+            />
+          )}
           <div className="space-y-0.5 text-xs select-none">
             <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center space-x-1">
               <span>{activeAgent.name.split(' ')[0]}</span>
