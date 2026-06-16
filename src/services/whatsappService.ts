@@ -322,9 +322,11 @@ export class WhatsappService {
             }
 
             if (shouldReconnect) {
-              console.log('[WhatsApp] Reconnection scheduled in 4s');
+              this.attemptCount++;
+              const delay = Math.min(2000 * Math.pow(1.5, this.attemptCount), 60000);
+              console.log(`[WhatsApp] Reconnection scheduled in ${Math.round(delay/1000)}s (Attempt: ${this.attemptCount})`);
               this.isInitializing = false;
-              this.reconnectTimeout = setTimeout(() => this.init(false), 4000);
+              this.reconnectTimeout = setTimeout(() => this.init(false), delay);
             } else {
               this.isInitializing = false;
               if (statusCode === DisconnectReason.loggedOut) {
