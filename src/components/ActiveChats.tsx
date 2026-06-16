@@ -404,7 +404,7 @@ export default function ActiveChats({
     if (!newChatPhone.trim() || newChatLoading) return;
     
     setNewChatLoading(true);
-    console.log("[NewChat] Iniciando chat para:", newChatPhone);
+    console.log("[NewChat] Iniciando chat para:", newChatPhone, "Atendente:", activeAgent.id);
     try {
       const res = await fetch('/api/conversations', {
         method: 'POST',

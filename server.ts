@@ -572,6 +572,7 @@ app.get('/api/conversations', async (req, res) => {
 });
 
 app.post('/api/conversations', async (req, res) => {
+  console.log("[API][NewChat] Body recebido:", JSON.stringify(req.body));
   const { name, phone, sectorId, attendant_id } = req.body;
   if (!phone) return res.status(400).json({ error: 'Telefone é obrigatório' });
 
@@ -600,6 +601,7 @@ app.post('/api/conversations', async (req, res) => {
     tags: [],
     created_at: new Date().toISOString()
   };
+  console.log("[API][NewChat] Conversa criada:", JSON.stringify(newConv));
 
   await dbStore.saveConversation(newConv);
   broadcastUpdate('conversation_updated', newConv);
