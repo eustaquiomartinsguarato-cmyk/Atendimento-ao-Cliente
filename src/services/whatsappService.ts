@@ -826,11 +826,27 @@ export class WhatsappService {
       // Ensure we have a valid JID format for private chat
       let jid = phone;
       if (!jid.includes('@')) {
-        const cleanPhone = phone.replace(/\D/g, '');
-        jid = `${cleanPhone}@s.whatsapp.net`;
+        const cleanDigits = phone.replace(/\D/g, '');
+        jid = `${cleanDigits}@s.whatsapp.net`;
+        
+        // Verificação inteligente de JID para o Brasil (regra do 9º dígito)
+        if (cleanDigits.startsWith('55') && this.socket) {
+          console.log(`[WhatsApp] Verificando existência de JID oficial para: ${jid}`);
+          try {
+            const [onWA] = await this.socket.onWhatsApp(jid);
+            if (onWA && onWA.exists) {
+              jid = onWA.jid;
+              console.log(`[WhatsApp] JID Oficial localizado: ${jid}`);
+            } else {
+              console.warn(`[WhatsApp] JID ${jid} não localizado via onWhatsApp. Tentando enviar assim mesmo.`);
+            }
+          } catch (waErr) {
+            console.error("[WhatsApp] Erro ao consultar onWhatsApp:", waErr);
+          }
+        }
       }
       
-      console.log(`[WhatsApp] Sending message to ${jid}: "${text.substring(0, 30)}..."`);
+      console.log(`[WhatsApp] Envio Real - JID: ${jid}, Texto: "${text.substring(0, 30)}..."`);
       
       const result = await this.socket.sendMessage(jid, { text });
       console.log(`[WhatsApp] Message dispatched successfully to WA server. ID: ${result?.key?.id}`);

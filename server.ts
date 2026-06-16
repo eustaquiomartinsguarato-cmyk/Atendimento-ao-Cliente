@@ -572,6 +572,7 @@ app.get('/api/conversations', async (req, res) => {
 });
 
 app.post('/api/conversations', async (req, res) => {
+  console.log("!!!DEBUG!!! /api/conversations endpoint reached");
   console.log("[API][NewChat] Body recebido:", JSON.stringify(req.body));
   const { name, phone, sectorId, attendant_id, initialMessage } = req.body;
   if (!phone) return res.status(400).json({ error: 'Telefone é obrigatório' });
@@ -986,8 +987,9 @@ app.post('/api/messages', async (req, res) => {
   // Send real WhatsApp if agent or system replies to a real WA conversation
   if (sender_type !== 'customer') {
     if (!conv.customer_phone.includes("(Simulação)")) {
-       console.log("[WhatsApp] Tentando enviar mensagem para:", conv.customer_phone, "Mensagem:", message);
-       await whatsappService.sendWhatsAppMessage(conv.customer_phone, message);
+       console.log(`[WhatsApp] Tentando enviar mensagem real pelo socket: Phone=${conv.customer_phone}, Msg=${message}`);
+       const sent = await whatsappService.sendWhatsAppMessage(conv.customer_phone, message);
+       console.log(`[WhatsApp] Resultado do envio: ${sent ? 'SUCESSO' : 'FALHA'}`);
     }
   }
 
