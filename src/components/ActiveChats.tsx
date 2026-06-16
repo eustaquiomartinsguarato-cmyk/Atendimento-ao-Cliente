@@ -436,12 +436,9 @@ export default function ActiveChats({
   const isAccessibleForAgent = (c: Conversation) => {
     if (activeAgent.role === 'admin' || activeAgent.role === 'access_total') return true;
     
-    // Chats assigned to me or explicitly transferred to me
+    // Attendants (atendimento) ONLY see chats assigned to them
+    // Users with 'atendimento' role are no longer allowed to see robot/queue pool
     if (c.attendant_id === activeAgent.id) return true;
-    
-    // ENTRY pool chats (waiting in robot or queue) MUST be visible to all agents 
-    // so they can see newcomers and assume/take over chats.
-    if (c.status === 'chatbot' || c.status === 'waiting') return true;
     
     return false;
   };
@@ -994,8 +991,8 @@ export default function ActiveChats({
                 
                 {activeConv.status !== 'closed' && (
                   <>
-                    {/* ASSUMIR button */}
-                    {(!activeConv.attendant_id || activeConv.status === 'chatbot') && (
+                    {/* ASSUMIR button - ONLY for Admins according to new flow */}
+                    {(activeAgent.role === 'admin' || activeAgent.role === 'access_total') && (!activeConv.attendant_id || activeConv.status === 'chatbot') && (
                       <button
                         onClick={() => onAssumeConversation(activeConv.id, activeAgent.id)}
                         className="bg-brand-primary hover:bg-brand-primary-dark text-brand-agent-text font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center space-x-1.5 transition cursor-pointer shadow-sm"
