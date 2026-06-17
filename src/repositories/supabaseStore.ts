@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import * as fs from 'fs';
 import * as path from 'path';
-import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog } from '../types/index.js';
+import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog, WhatsAppAuth } from '../types/index.js';
 
 let activeUrl = process.env.SUPABASE_URL || '';
 let activeKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
@@ -453,6 +453,55 @@ export class SupabaseStore {
     if (error) {
       console.error("[Supabase] Error in addAuditLog:", error.message);
       throw error;
+    }
+  }
+
+  // --- WhatsApp Auth ---
+  async getWhatsAppAuthFiles(): Promise<WhatsAppAuth[]> {
+    try {
+      const { data, error } = await getClient()
+        .from('whatsapp_auth')
+        .select('*');
+      if (error) throw error;
+      return (data || []) as WhatsAppAuth[];
+    } catch (err) {
+      console.warn("[Supabase] WhatsApp Auth table check:", err);
+      return [];
+    }
+  }
+
+  async saveWhatsAppAuthFile(file: WhatsAppAuth): Promise<void> {
+    try {
+      const { error } = await getClient()
+        .from('whatsapp_auth')
+        .upsert(file);
+      if (error) throw error;
+    } catch (err) {
+      console.warn("[Supabase] Ignore saveWhatsAppAuthFile error if table missing:", err);
+    }
+  }
+
+  async deleteWhatsAppAuthFile(id: string): Promise<void> {
+    try {
+      const { error } = await getClient()
+        .from('whatsapp_auth')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    } catch (err) {
+      console.warn("[Supabase] Ignore deleteWhatsAppAuthFile error:", err);
+    }
+  }
+
+  async clearWhatsAppAuth(): Promise<void> {
+    try {
+      const { error } = await getClient()
+        .from('whatsapp_auth')
+        .delete()
+        .neq('id', 'placeholder_force_delete_all_rows');
+      if (error) throw error;
+    } catch (err) {
+      console.warn("[Supabase] Ignore clearWhatsAppAuth error:", err);
     }
   }
 }

@@ -29,6 +29,12 @@ export function isFreeAccessTime(): boolean {
 }
 
 export async function handleIncomingMessageForChatbot(conv: Conversation, text: string): Promise<Message | null> {
+  // EXTRA SAFETY: Ensure chatbot only runs if status is really chatbot
+  if (conv.status !== 'chatbot') {
+    console.log(`[Chatbot] Abortando processamento para ${conv.id}: status é ${conv.status}, não chatbot.`);
+    return null;
+  }
+  
   const now = Date.now();
   
   // Prevent parallel processing for the same conversation

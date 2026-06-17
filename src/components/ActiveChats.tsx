@@ -895,7 +895,7 @@ export default function ActiveChats({
                                     src={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} 
                                     alt="Imagem" 
                                     className="max-w-full rounded-lg max-h-32 object-contain cursor-pointer"
-                                    onClick={() => window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
+                                    onClick={() => msg.file_url && window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
                                   />
                                 ) : (
                                   <a href={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline break-all">
@@ -1275,7 +1275,7 @@ export default function ActiveChats({
                                 src={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} 
                                 alt="Imagem recebida" 
                                 className="max-w-full rounded-lg max-h-64 object-contain shadow-sm cursor-pointer"
-                                onClick={() => window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
+                                onClick={() => msg.file_url && window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
                               />
                              ) : !msg.mimetype?.startsWith('audio/') && !msg.mimetype?.startsWith('video/') ? (
                               <a 

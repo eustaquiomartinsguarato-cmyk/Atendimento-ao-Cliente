@@ -629,7 +629,13 @@ export class WhatsappService {
       return;
     }
 
-    const isMedia = !!(upsert.message?.imageMessage || upsert.message?.videoMessage || upsert.message?.audioMessage || upsert.message?.documentMessage || upsert.message?.stickerMessage);
+    const nested = upsert.message?.ephemeralMessage?.message || 
+                   upsert.message?.viewOnceMessage?.message || 
+                   upsert.message?.viewOnceMessageV2?.message || 
+                   upsert.message?.documentWithCaptionMessage?.message ||
+                   upsert.message;
+
+    const isMedia = !!(nested?.imageMessage || nested?.videoMessage || nested?.audioMessage || nested?.documentMessage || nested?.stickerMessage);
 
     if (!text && !isMedia) {
       console.log('[WhatsApp] Mensagem recebida de', cleanPhone, 'porém sem conteúdo legível.');
@@ -646,25 +652,25 @@ export class WhatsappService {
       return;
     }
 
-    const finalMessageText = text || (upsert.message?.imageMessage ? "📷 Foto" : upsert.message?.videoMessage ? "🎥 Vídeo" : upsert.message?.audioMessage ? "🎙️ Áudio" : upsert.message?.documentMessage ? "📄 Documento" : upsert.message?.stickerMessage ? "🖼️ Figurinha" : "📎 Mídia");
-
+    const finalMessageText = text || (nested?.imageMessage ? "📷 Foto" : nested?.videoMessage ? "🎥 Vídeo" : nested?.audioMessage ? "🎙️ Áudio" : nested?.documentMessage ? "📄 Documento" : nested?.stickerMessage ? "🖼️ Figurinha" : "📎 Mídia");
     let file_url: string | undefined = undefined;
     let file_name: string | undefined = undefined;
     let file_mimetype: string | undefined = undefined;
 
     if (isMedia) {
       try {
-        const msgObj = upsert.message?.imageMessage || 
-                       upsert.message?.videoMessage || 
-                       upsert.message?.audioMessage || 
-                       upsert.message?.documentMessage || 
-                       upsert.message?.stickerMessage;
+        const msgObj = nested.imageMessage || 
+                       nested.videoMessage || 
+                       nested.audioMessage || 
+                       nested.documentMessage || 
+                       nested.stickerMessage;
         
         if (msgObj) {
-          const mType = upsert.message?.imageMessage ? 'image' : 
-                        upsert.message?.videoMessage ? 'video' : 
-                        upsert.message?.audioMessage ? 'audio' : 
-                        upsert.message?.documentMessage ? 'document' : 'sticker';
+          const mType = nested.imageMessage ? 'image' : 
+                        nested.videoMessage ? 'video' : 
+                        nested.audioMessage ? 'audio' : 
+                        nested.documentMessage ? 'document' : 'sticker';
+
 
           file_mimetype = msgObj.mimetype;
           file_name = (msgObj as any).fileName || (msgObj as any).filename || '';
@@ -776,6 +782,7 @@ export class WhatsappService {
       const lastFewSeconds = Date.now() - 3000;
       const isDuplicate = messages.some(m => 
         m.message === finalMessageText && 
+        m.file_url === file_url &&
         new Date(m.created_at).getTime() > lastFewSeconds
       );
 
@@ -828,7 +835,6 @@ export class WhatsappService {
         }
       }
     }
-
   }
 
   async sendWhatsAppMessage(phone: string, text: string): Promise<boolean> {
@@ -849,7 +855,8 @@ export class WhatsappService {
         if (cleanDigits.startsWith('55') && this.socket) {
           console.log(`[WhatsApp] Verificando existência de JID oficial para: ${jid}`);
           try {
-            const [onWA] = await this.socket.onWhatsApp(jid);
+            const onWARes = await this.socket.onWhatsApp(jid);
+            const onWA = onWARes && onWARes[0];
             if (onWA && onWA.exists) {
               jid = onWA.jid;
               console.log(`[WhatsApp] JID Oficial localizado: ${jid}`);

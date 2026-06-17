@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import * as fs from 'fs';
 import * as path from 'path';
-import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog } from '../types/index.js';
+import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog, WhatsAppAuth } from '../types/index.js';
 
 // Lazy Config Loader
 let _config: any = null;
