@@ -1272,10 +1272,10 @@ export default function ActiveChats({
                           <div className="mt-3">
                             {msg.mimetype?.startsWith('image/') ? (
                               <img 
-                                src={msg.file_url} 
+                                src={msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`} 
                                 alt="Imagem recebida" 
                                 className="max-w-full rounded-lg max-h-64 object-contain shadow-sm cursor-pointer"
-                                onClick={() => window.open(msg.file_url, '_blank')}
+                                onClick={() => window.open(msg.file_url.startsWith('http') ? msg.file_url : `${window.location.origin}${msg.file_url}?t=${new Date().getTime()}`, '_blank')}
                               />
                              ) : !msg.mimetype?.startsWith('audio/') && !msg.mimetype?.startsWith('video/') ? (
                               <a 

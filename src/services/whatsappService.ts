@@ -748,7 +748,10 @@ export class WhatsappService {
         if (!fromMe) this.pendingCreations.delete(cleanPhone);
       }
     } else {
-      console.log(`[WhatsApp] Mensagem vinculada ao chat existente: ${conv.id}`);
+      // Re-fetch conversation to ensure status is fresh (fix race conditions)
+      conv = await dbStore.getConversationById(conv.id) || conv;
+
+      console.log(`[WhatsApp] Mensagem vinculada ao chat existente: ${conv.id}. Status atual: ${conv.status}`);
       if (conv.status === 'closed' && senderType === 'customer') {
         conv.status = 'chatbot';
         conv.sector_id = null;
@@ -768,20 +771,17 @@ export class WhatsappService {
     }
 
     if (conv) {
-      // Evita duplicatas de mensagens enviadas simultaneamente via Web UI
-      if (fromMe) {
-        const messages = await dbStore.getMessagesForConversation(conv.id);
-        const lastFewSeconds = Date.now() - 3000;
-        const isDuplicate = messages.some(m => 
-          m.message === finalMessageText && 
-          new Date(m.created_at).getTime() > lastFewSeconds &&
-          m.sender_type !== 'customer'
-        );
+      // Evita duplicatas de mensagens enviadas simultaneamente
+      const messages = await dbStore.getMessagesForConversation(conv.id);
+      const lastFewSeconds = Date.now() - 3000;
+      const isDuplicate = messages.some(m => 
+        m.message === finalMessageText && 
+        new Date(m.created_at).getTime() > lastFewSeconds
+      );
 
-        if (isDuplicate) {
-          console.log('[WhatsApp] Ignorando duplicata de mensagem enviada via Painel Web');
-          return;
-        }
+      if (isDuplicate) {
+        console.log(`[WhatsApp] Ignorando duplicata de mensagem (${senderType}) no chat ${conv.id}`);
+        return;
       }
 
       const newMsg: Message = {
@@ -797,7 +797,7 @@ export class WhatsappService {
 
       await dbStore.saveMessage(newMsg);
       this.notify('message_created', newMsg);
-      console.log(`[WhatsApp] Mensagem de ${senderType} salva no histórico do chat ${conv.id}`);
+      console.log(`[WhatsApp] Mensagem de ${senderType} salva e notificada no chat ${conv.id}. Texto: ${finalMessageText.substring(0, 30)}`);
 
       if (senderType === 'customer' && conv.status === 'chatbot') {
         try {
