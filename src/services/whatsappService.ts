@@ -79,6 +79,14 @@ export class WhatsappService {
         }
       }
     }
+
+    // 4. Limpar banco de dados multi-arquivos
+    try {
+      console.log('[WhatsApp] Limpando arquivos de sessão multi-autenticação do banco de dados...');
+      await dbStore.clearWhatsAppAuth();
+    } catch (clearErr) {
+      console.error('[WhatsApp] Erro ao limpar whatsapp_auth no banco:', clearErr);
+    }
   }
 
   async init(forceSync = false) {
@@ -150,27 +158,35 @@ export class WhatsappService {
            console.warn('[WhatsApp] Auth path is a file, deleting to recreate as directory');
            fs.unlinkSync(this.authPath);
         }
-      } else {
-        // If directory doesn't exist, check database to restore saved credentials
-        try {
-          const settings = await dbStore.getSettings();
-          const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
-          const savedCreds = settings ? settings[credsField] : undefined;
-          if (savedCreds) {
-            console.log(`[WhatsApp] Restored session credentials found in database (${credsField}). Setting up local files.`);
+      }
+
+      // NOVO MECANISMO DE PERSISTÊNCIA MULTI-ARQUIVOS PARA CLOUD RUN
+      console.log('[WhatsApp] Sincronizando estado de autenticação multi-arquivos do Firestore...');
+      try {
+        const authFiles = await dbStore.getWhatsAppAuthFiles();
+        if (authFiles.length > 0) {
+          console.log(`[WhatsApp] Restaurando ${authFiles.length} arquivos de sessão do banco de dados.`);
+          if (!fs.existsSync(this.authPath)) {
             fs.mkdirSync(this.authPath, { recursive: true });
-            const credsPath = path.join(this.authPath, 'creds.json');
-            fs.writeFileSync(credsPath, savedCreds, 'utf-8');
-            console.log('[WhatsApp] session credentials restored successfully!');
           }
-        } catch (dbErr: any) {
-          console.error('[WhatsApp] Failed to restore credentials from database fallback:', dbErr?.message || dbErr);
+          for (const file of authFiles) {
+            const filePath = path.join(this.authPath, file.file_name);
+            fs.writeFileSync(filePath, Buffer.from(file.data, 'base64'));
+          }
+          console.log('[WhatsApp] Restauração completa de arquivos de sessão concluída.');
+        } else {
+          console.log('[WhatsApp] Nenhum arquivo de sessão multi-arquivo encontrado no banco de dados.');
         }
+      } catch (authErr) {
+        console.error('[WhatsApp] Erro ao restaurar arquivos multi-autenticação do banco:', authErr);
       }
 
       console.log('[WhatsApp] Loading auth state from:', this.authPath);
       const { state, saveCreds } = await useMultiFileAuthState(this.authPath);
       
+      // Iniciar monitoramento de arquivos para salvar novos estados no banco (importante para o Cloud Run)
+      this.startAuthFileSync();
+
       console.log('[WhatsApp] Fetching latest Baileys version with 5s timeout...');
       let version: [number, number, number] | undefined = undefined; 
       try {
@@ -209,12 +225,15 @@ export class WhatsappService {
 
       this.socket = makeWASocket(socketOptions);
 
-      this.socket.ev.on('creds.update', async () => {
+    this.socket.ev.on('creds.update', async () => {
         try {
           // 1. Let Baileys update details on the disk
           await saveCreds();
 
-          // 2. Perform background backup to the Database (Supabase / local DB settings)
+          // 2. Sincronização robusta de múltiplos arquivos
+          await this.syncAuthDirectoryToDb();
+          
+          // Compatibilidade legado (opcional)
           try {
             const credsPath = path.join(this.authPath, 'creds.json');
             if (fs.existsSync(credsPath)) {
@@ -222,14 +241,11 @@ export class WhatsappService {
               const settings = await dbStore.getSettings();
               const credsField = process.env.NODE_ENV === 'production' ? 'whatsapp_session_creds' : 'whatsapp_session_creds_dev';
               if (settings[credsField] !== raw) {
-                console.log(`[WhatsApp] Session credentials modified. Synced backup to database field ${credsField}...`);
                 settings[credsField] = raw;
                 await dbStore.updateSettings(settings);
               }
             }
-          } catch (backupErr: any) {
-            console.error('[WhatsApp] Background cloud database session sync failed:', backupErr?.message || backupErr);
-          }
+          } catch (bk) {}
         } catch (credsErr: any) {
           console.error('[WhatsApp] Error in creds.update:', credsErr);
         }
@@ -928,6 +944,54 @@ export class WhatsappService {
       await this.socket.sendPresenceUpdate(presence, jid);
     } catch (err) {
       console.error("[WhatsApp] Error in sendPresenceUpdate:", err);
+    }
+  }
+
+  // --- Sincronização Multi-Arquivos ---
+  private authSyncInterval: any = null;
+
+  private startAuthFileSync() {
+    if (this.authSyncInterval) clearInterval(this.authSyncInterval);
+    
+    // Sincroniza a cada 2 minutos ou sob demanda
+    this.authSyncInterval = setInterval(() => {
+      this.syncAuthDirectoryToDb();
+    }, 120000);
+  }
+
+  /**
+   * Lê todos os arquivos da pasta authPath e salva no Firestore
+   */
+  private async syncAuthDirectoryToDb() {
+    if (!fs.existsSync(this.authPath)) return;
+
+    try {
+      const files = fs.readdirSync(this.authPath);
+      // console.log(`[WhatsApp Sync] Verificando ${files.length} arquivos para backup...`);
+      
+      for (const fileName of files) {
+        if (fileName === '.DS_Store') continue;
+        
+        const filePath = path.join(this.authPath, fileName);
+        const stats = fs.statSync(filePath);
+        
+        if (stats.isFile()) {
+          const data = fs.readFileSync(filePath);
+          const base64Data = data.toString('base64');
+          
+          // ID baseado no nome do arquivo (sanitizado para o Firestore)
+          const fileId = "auth_" + fileName.replace(/[^a-zA-Z0-9]/g, '_');
+          
+          await dbStore.saveWhatsAppAuthFile({
+            id: fileId,
+            file_name: fileName,
+            data: base64Data,
+            updated_at: new Date().toISOString()
+          });
+        }
+      }
+    } catch (err) {
+      console.error('[WhatsApp Sync] Erro ao sincronizar pasta de auth para o banco:', err);
     }
   }
 }

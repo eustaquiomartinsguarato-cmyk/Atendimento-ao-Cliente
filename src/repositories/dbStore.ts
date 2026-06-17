@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog } from '../types/index.js';
+import { User, Sector, Conversation, Message, QueueItem, Settings, AuditLog, WhatsAppAuth } from '../types/index.js';
 import { firebaseStore } from './firebaseStore.js';
 import { supabaseStore, isSupabaseConfigured } from './supabaseStore.js';
 
@@ -473,6 +473,40 @@ export class DbStore {
       await this.getStore().addAuditLog(log);
     } catch (err) {
       console.error(`[Storage Fallback] ${this.getEngineName()} addAuditLog error, fell back to local storage:`, err);
+    }
+  }
+
+  // --- WhatsApp Auth ---
+  async getWhatsAppAuthFiles(): Promise<WhatsAppAuth[]> {
+    try {
+      return await this.getStore().getWhatsAppAuthFiles();
+    } catch (err) {
+      console.error(`${this.getEngineName()} getWhatsAppAuthFiles error:`, err);
+      return [];
+    }
+  }
+
+  async saveWhatsAppAuthFile(file: WhatsAppAuth) {
+    try {
+      await this.getStore().saveWhatsAppAuthFile(file);
+    } catch (err) {
+      console.error(`${this.getEngineName()} saveWhatsAppAuthFile error:`, err);
+    }
+  }
+
+  async deleteWhatsAppAuthFile(id: string) {
+    try {
+      await this.getStore().deleteWhatsAppAuthFile(id);
+    } catch (err) {
+      console.error(`${this.getEngineName()} deleteWhatsAppAuthFile error:`, err);
+    }
+  }
+
+  async clearWhatsAppAuth() {
+    try {
+      await this.getStore().clearWhatsAppAuth();
+    } catch (err) {
+      console.error(`${this.getEngineName()} clearWhatsAppAuth error:`, err);
     }
   }
 }

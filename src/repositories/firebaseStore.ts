@@ -227,6 +227,31 @@ export class FirebaseStore {
     const db = getDb();
     await setDoc(doc(db, 'audit_logs', log.id), log);
   }
+
+  // --- WhatsApp Auth Persistence ---
+  async getWhatsAppAuthFiles(): Promise<WhatsAppAuth[]> {
+    const db = getDb();
+    const snapshot = await getDocs(collection(db, 'whatsapp_auth'));
+    return snapshot.docs.map((doc: any) => doc.data() as WhatsAppAuth);
+  }
+
+  async saveWhatsAppAuthFile(file: WhatsAppAuth): Promise<void> {
+    const db = getDb();
+    await setDoc(doc(db, 'whatsapp_auth', file.id), file, { merge: true });
+  }
+
+  async deleteWhatsAppAuthFile(id: string): Promise<void> {
+    const db = getDb();
+    await deleteDoc(doc(db, 'whatsapp_auth', id));
+  }
+
+  async clearWhatsAppAuth(): Promise<void> {
+    const db = getDb();
+    const snapshot = await getDocs(collection(db, 'whatsapp_auth'));
+    const batch = writeBatch(db);
+    snapshot.docs.forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+  }
 }
 
 export const firebaseStore = new FirebaseStore();

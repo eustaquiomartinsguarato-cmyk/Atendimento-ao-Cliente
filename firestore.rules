@@ -3,7 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Default deny catch-all
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
 
     // Helper functions
@@ -59,6 +59,11 @@ service cloud.firestore {
     match /audit_logs/{logId} {
       allow read: if isAdmin();
       allow write: if isSignedIn();
+    }
+
+    // WhatsApp Auth (Critical Security)
+    match /whatsapp_auth/{authId} {
+      allow read, write: if isAdmin();
     }
   }
 }

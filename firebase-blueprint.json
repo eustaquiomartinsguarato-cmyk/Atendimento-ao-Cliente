@@ -100,6 +100,18 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "user_name", "action", "timestamp"]
+    },
+    "WhatsAppAuth": {
+      "title": "WhatsAppAuth",
+      "description": "Baileys session files for multi-file auth state persistence",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "file_name": { "type": "string" },
+        "data": { "type": "string" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "file_name", "data"]
     }
   },
   "firestore": {
@@ -130,6 +142,10 @@
     "/audit_logs/{logId}": {
       "schema": "AuditLog",
       "description": "System audit logs"
+    },
+    "/whatsapp_auth/{authId}": {
+      "schema": "WhatsAppAuth",
+      "description": "Baileys session files to persist state across deployments"
     }
   }
 }

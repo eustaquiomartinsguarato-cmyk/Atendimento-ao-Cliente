@@ -109,3 +109,10 @@ export interface AuditLog {
   target: string;
   timestamp: string;
 }
+
+export interface WhatsAppAuth {
+  id: string;
+  file_name: string;
+  data: string;
+  updated_at: string;
+}
