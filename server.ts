@@ -986,6 +986,13 @@ app.post('/api/messages', async (req, res) => {
 
   // Send real WhatsApp if agent or system replies to a real WA conversation
   if (sender_type !== 'customer') {
+    if (conv.status === 'chatbot') {
+        conv.status = 'active';
+        conv.sector_id = null; // Reset sector if needed, or handle based on business rules
+        await dbStore.saveConversation(conv);
+        broadcastUpdate('conversation_updated', conv);
+    }
+    
     if (!conv.customer_phone.includes("(Simulação)")) {
        console.log(`[WhatsApp] Tentando enviar mensagem real pelo socket: Phone=${conv.customer_phone}, Msg=${message}`);
        const sent = await whatsappService.sendWhatsAppMessage(conv.customer_phone, message);
@@ -1356,6 +1363,7 @@ async function startServer() {
     console.log("[Server] Iniciando servidor em modo de PRODUÇÃO com arquivos estáticos de dist/client");
     const distPath = path.resolve('dist/client');
     app.use(express.static(distPath));
+    app.use('/uploads', express.static(path.resolve('uploads')));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
